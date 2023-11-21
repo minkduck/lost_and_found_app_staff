@@ -35,8 +35,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<dynamic> itemlist = [];
   List<dynamic> myItemlist = [];
+  bool myItemsLoading = false;
   final ItemController itemController = Get.put(ItemController());
   String filterText = '';
+  bool itemsSelected = true;
+  bool myItemsSelected = false;
 
   bool _isMounted = false;
   String? firstLogin = '';
@@ -108,6 +111,30 @@ class _HomeScreenState extends State<HomeScreen> {
     return filteredByText;
   }
 
+  List<dynamic> filterMyItemsByCategories() {
+    // Apply category filtering first
+    final List<dynamic> filteredByCategories = selectedCategoryGroup == null
+        ? myItemlist
+        : myItemlist.where((item) {
+      final category = item['categoryName'];
+      return selectedCategoryGroup['categories']
+          .any((selectedCategory) => selectedCategory['name'] == category);
+    }).toList();
+
+    // Apply text filter
+    final filteredByText = filteredByCategories
+        .where((item) =>
+    selectedCategories.isEmpty ||
+        selectedCategories.contains(item['categoryName']))
+        .where((item) =>
+    filterText.isEmpty ||
+        (item['name'] != null &&
+            item['name'].toLowerCase().contains(filterText.toLowerCase())))
+        .toList();
+
+    return filteredByText;
+  }
+
   Future<void> _refreshData() async {
     _isMounted = true;
     await itemController.getItemList().then((result) {
@@ -137,6 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _isMounted = true;
+    myItemsLoading = true;
     setState(() {
       firstLoged();
     });
@@ -183,6 +211,14 @@ class _HomeScreenState extends State<HomeScreen> {
             });
           }
         });
+        await itemController.getItemByUidList().then((result) {
+          if (_isMounted) {
+            setState(() {
+              myItemlist = result;
+              myItemsLoading = false;
+            });
+          }
+        });
         await categoryController.getCategoryGroupList().then((result) {
           if (_isMounted) {
             setState(() {
@@ -203,6 +239,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final filteredItems = filterItemsByCategories();
+    final filteredMyItems = filterMyItemsByCategories();
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: _refreshData,
@@ -245,6 +282,38 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 Gap(AppLayout.getHeight(15)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    AppButton(
+                        boxColor: itemsSelected
+                            ? AppColors.primaryColor
+                            : AppColors.secondPrimaryColor,
+                        textButton: "Items",
+                        width: AppLayout.getWidth(150),
+                        height: AppLayout.getHeight(35),
+                        onTap: () {
+                          setState(() {
+                            itemsSelected = true;
+                            myItemsSelected = false;
+                          });
+                        }),
+                    AppButton(
+                        boxColor: myItemsSelected
+                            ? AppColors.primaryColor
+                            : AppColors.secondPrimaryColor,
+                        textButton: "My Items",
+                        width: AppLayout.getWidth(150),
+                        height: AppLayout.getHeight(35),
+                        onTap: () {
+                          setState(() {
+                            itemsSelected = false;
+                            myItemsSelected = true;
+                          });
+                        })
+                  ],
+                ),
+                Gap(AppLayout.getHeight(10)),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: SingleChildScrollView(
@@ -319,7 +388,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 Gap(AppLayout.getHeight(25)),
                 GetBuilder<ItemController>(builder: (item) {
-                  return itemlist.isNotEmpty
+                  return itemsSelected
+                      ? itemlist.isNotEmpty
                       ? Center(
                     child: GridView.builder(
                       padding: EdgeInsets.all(15),
@@ -328,7 +398,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       gridDelegate:
                       SliverGridDelegateWithMaxCrossAxisExtent(
                         maxCrossAxisExtent: AppLayout.getWidth(200),
-                        childAspectRatio: 0.485,
+                        childAspectRatio: 0.55,
                         crossAxisSpacing: AppLayout.getWidth(20),
                         mainAxisSpacing: AppLayout.getHeight(20),
                       ),
@@ -348,7 +418,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             CrossAxisAlignment.start,
                             children: [
                               Container(
-                                height: AppLayout.getHeight(151),
+                                height: AppLayout.getHeight(100),
                                 width: AppLayout.getWidth(180),
                                 child: Image.network(
                                   mediaUrl,
@@ -396,7 +466,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         Alignment.centerLeft,
                                         child: Text(
                                           item['createdDate'] != null
-                                              ? '${DateFormat('dd-MM-yyyy').format(DateTime.parse(item['createdDate']))}'
+                                              ? '${TimeAgoWidget.formatTimeAgo(DateTime.parse(item['createdDate']))}'
                                               : 'No Date',
                                           maxLines: 1,
                                           overflow:
@@ -448,7 +518,146 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: const Center(
                       child: CircularProgressIndicator(),
                     ),
-                  );
+                  )
+                      : myItemsSelected // Check if the "My Items" button is selected
+                      ? myItemsLoading ? SizedBox(
+                    width: AppLayout.getWidth(100),
+                    height: AppLayout.getHeight(300),
+                    child: const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  ) :
+                  myItemlist.isNotEmpty // Render myItemList grid view when My Items button is selected
+                      ? Center(
+                    child: GridView.builder(
+                      padding: EdgeInsets.all(15),
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      gridDelegate:
+                      SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: AppLayout.getWidth(200),
+                        childAspectRatio: 0.55,
+                        crossAxisSpacing: AppLayout.getWidth(20),
+                        mainAxisSpacing: AppLayout.getHeight(20),
+                      ),
+                      itemCount: filteredMyItems.length,
+                      itemBuilder: (context, index) {
+                        final item = filteredMyItems[index];
+                        final mediaUrl = getUrlFromItem(item) ??
+                            "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg";
+
+                        return Container(
+                          decoration: const BoxDecoration(
+                            borderRadius:
+                            BorderRadius.all(Radius.circular(15)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment:
+                            CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                height: AppLayout.getHeight(100),
+                                width: AppLayout.getWidth(180),
+                                child: Image.network(
+                                  mediaUrl,
+                                  fit: BoxFit.fill,
+                                  errorBuilder:
+                                      (context, error, stackTrace) {
+                                    // Handle image loading errors
+                                    return Image.network(
+                                        "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg",
+                                        fit: BoxFit.fill);
+                                  },
+                                ),
+                              ),
+                              Container(
+                                color: Theme.of(context).cardColor,
+                                padding: EdgeInsets.only(
+                                  bottom: AppLayout.getHeight(28.5),
+                                  left: AppLayout.getWidth(8),
+                                  right: AppLayout.getWidth(8),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                                  children: [
+                                    Gap(AppLayout.getHeight(8)),
+                                    Text(
+                                      item['name'] ?? 'No Name',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    Gap(AppLayout.getHeight(15)),
+                                    IconAndTextWidget(
+                                      icon: Icons.location_on,
+                                      text: item['locationName'] ??
+                                          'No Location',
+                                      size: 15,
+                                      iconColor: Colors.black,
+                                    ),
+                                    Gap(AppLayout.getWidth(15)),
+                                    Container(
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 8.0),
+                                      child: Align(
+                                        alignment:
+                                        Alignment.centerLeft,
+                                        child: Text(
+                                          item['createdDate'] != null
+                                              ? '${TimeAgoWidget.formatTimeAgo(DateTime.parse(item['createdDate']))}'
+                                              : 'No Date',
+                                          maxLines: 1,
+                                          overflow:
+                                          TextOverflow.ellipsis,
+                                          style:
+                                          TextStyle(fontSize: 15),
+                                        ),
+
+                                      ),
+                                    ),
+                                    Gap(AppLayout.getHeight(15)),
+                                    Text("   "+item['itemStatus'] ??
+                                        'No Status',style: TextStyle(color: AppColors.primaryColor, fontSize: 15),)
+                                  ],
+                                ),
+                              ),
+                              Spacer(),
+                              Container(
+                                child: AppButton(
+                                  boxColor:
+                                  AppColors.secondPrimaryColor,
+                                  textButton: "Details",
+                                  fontSize: 18,
+                                  height: AppLayout.getHeight(30),
+                                  width: AppLayout.getWidth(180),
+                                  topLeft: 1,
+                                  topRight: 1,
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            ItemsDetails(
+                                                pageId: item['id'],
+                                                page: "item"),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ) : SizedBox(
+                    width: AppLayout.getScreenWidth(),
+                    height: AppLayout.getScreenHeight()-400,
+                    child: Center(
+                      child: Text("You haven't created any items yet"),
+                    ),
+                  )
+                      : Container();
                 }),
               ],
             ),

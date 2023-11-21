@@ -288,6 +288,19 @@ class _ItemsDetailsState extends State<ItemsDetails> {
                   ],
                 ),
                 Gap(AppLayout.getHeight(40)),
+                itemlist['user']['id'] == uid ? Center(
+                    child: AppButton(
+                        boxColor: AppColors.secondPrimaryColor,
+                        textButton: "List Claim",
+                        onTap: () {
+                          Navigator.push(
+                              context, MaterialPageRoute(builder: (context) => ClaimItems(pageId: widget.pageId, page: "Claim user",)));
+                        }))
+                    : Center(
+                    child: AppButton(
+                      boxColor: isItemClaimed ? AppColors.primaryColor : AppColors.secondPrimaryColor,
+                      textButton: isItemClaimed ? "Claimed" : "Claim",
+                      onTap: isItemClaimed ? unclaimItem : claimItem,)),
               ],
             )
                 : SizedBox(

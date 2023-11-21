@@ -138,7 +138,7 @@ class ItemController extends GetxController{
     if (response.statusCode == 200) {
       print(await response.stream.bytesToString());
       SnackbarUtils().showSuccess(title: "Successs", message: "Create new item successfully");
-      Get.toNamed(RouteHelper.getInitial());
+      Get.toNamed(RouteHelper.getInitial(0));
     }
     else {
       print(response.reasonPhrase);
