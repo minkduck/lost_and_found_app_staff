@@ -16,6 +16,7 @@ import '../../widgets/app_button.dart';
 import '../../widgets/custom_search_bar.dart';
 import '../../widgets/icon_and_text_widget.dart';
 import '../../widgets/time_widget.dart';
+import '../item/create_item.dart';
 import '../item/items_detail.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -664,6 +665,16 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => CreateItem()));
+        },
+        tooltip: 'Create Items',
+        backgroundColor: AppColors.primaryColor,
+        child: const Icon(Icons.add),
+      ),
+
     );
   }
 }

@@ -4,12 +4,17 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
+import 'package:lost_and_found_app_staff/pages/account/profile_page.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../data/api/user/user_controller.dart';
 import '../../utils/app_layout.dart';
 import '../../utils/colors.dart';
+import '../../widgets/app_button.dart';
 import '../../widgets/icon_and_text_widget.dart';
+import '../claims/item_claim_by_user.dart';
+import 'my_qr_code.dart';
 
 class AccountPage extends StatefulWidget {
   const AccountPage({super.key});
@@ -57,104 +62,78 @@ class _AccountPageState extends State<AccountPage> {
     });
 
   }
-  @override
-  Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser!;
+    @override
+    Widget build(BuildContext context) {
+      return Scaffold(
+        body: Column(
+          children: [
+            userList.isNotEmpty ? Column(
+              children: [
+                Gap(AppLayout.getHeight(50)),
+                Gap(AppLayout.getHeight(30)),
+                Center(
+                  child: CircleAvatar(
+                    radius: 80,
+                    backgroundImage:
+                    NetworkImage(userList['avatar'] ?? "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
+                  ),
+                ),
+              ],
+            ) :const Center(child: CircularProgressIndicator(),),
+            Gap(AppLayout.getHeight(50)),
+            AppButton(boxColor: AppColors.primaryColor, textButton: "Profile", onTap: () {
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (context) => ProfilePage()));
 
-    return Scaffold(
-      body: Column(
-        children: [
-          userList.isNotEmpty ? Column(
-            children: [
-              Gap(AppLayout.getHeight(70)),
-              CircleAvatar(
-                radius: 80,
-                backgroundImage:
-                NetworkImage(userList['avatar'] ?? ''),
-              ),
-              Gap(AppLayout.getHeight(30)),
-              Text(userList['fullName']?? '', style: Theme.of(context).textTheme.headlineMedium,),
-              Gap(AppLayout.getHeight(30)),
-              Container(
-                margin: EdgeInsets.symmetric(horizontal: 30),
-                padding: EdgeInsets.only(top: AppLayout.getHeight(20), bottom: AppLayout.getHeight(20)),
+            }),
+            Gap(AppLayout.getHeight(50)),
+            AppButton(boxColor: AppColors.primaryColor, textButton: "My QR Code", onTap: () {
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (context) => MyQrCode()));
+
+            }),
+            Gap(AppLayout.getHeight(50)),
+            AppButton(boxColor: AppColors.primaryColor, textButton: "My List Claim Item", onTap: () {
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (context) => ItemClaimByUser()));
+
+            }),
+            Gap(AppLayout.getHeight(80)),
+
+            InkWell(
+              onTap: () async {
+                await logout();
+              },
+              child: Ink(
+                width: AppLayout.getWidth(325),
+                height: AppLayout.getHeight(50),
                 decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.all(Radius.circular(20)),
-                    boxShadow: [
-                      BoxShadow(
-                          blurRadius: 4,
-                          spreadRadius: 4,
-                          offset: Offset(0, 4),
-                          color: Colors.grey.withOpacity(0.2))
-                    ]),
-                // color: Colors.red,
-                child: Column(
-                  // crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding:  EdgeInsets.only(bottom: AppLayout.getHeight(8), left: AppLayout.getWidth(40)),
-                      child: IconAndTextWidget(icon: Icons.email, text: userList['email']?? '-', iconColor: AppColors.secondPrimaryColor),
-                    ),
+                  color: Theme.of(context).cardColor, // Set the color here
+                  // borderRadius: BorderRadius.circular(AppLayout.getHeight(15)),
+                  borderRadius: BorderRadius.all(Radius.circular(15)),
 
-                    Divider(color: Colors.grey,thickness: 1, indent: 30,endIndent: 30,),
-                    Gap(AppLayout.getHeight(10)),
-
-                    Padding(
-                      padding: EdgeInsets.only(bottom: AppLayout.getHeight(8), left: AppLayout.getWidth(40)),
-                      child: IconAndTextWidget(icon: FontAwesomeIcons.genderless, text: userList['gender'] ?? '-', iconColor: AppColors.secondPrimaryColor),
-
-                    ),
-                    Divider(color: Colors.grey,thickness: 1, indent: 30,endIndent: 30,),
-                    Gap(AppLayout.getHeight(10)),
-
-                    Padding(
-                      padding: EdgeInsets.only(bottom: AppLayout.getHeight(8), left: AppLayout.getWidth(40)),
-                      child: IconAndTextWidget(icon: Icons.phone, text: userList['phone']?? '-', iconColor: AppColors.secondPrimaryColor),
-                    ),
-
+                  boxShadow: [
+                    BoxShadow(
+                        blurRadius: 4,
+                        spreadRadius: 4,
+                        offset: Offset(0, 4),
+                        color: Colors.grey.withOpacity(0.2))
                   ],
                 ),
-              ),
-              Gap(AppLayout.getHeight(150)),
-            ],
-          ) : Center(child: CircularProgressIndicator(),),
-
-          InkWell(
-            onTap: () async {
-              logout();
-            },
-            child: Ink(
-              width: AppLayout.getWidth(325),
-              height: AppLayout.getHeight(50),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor, // Set the color here
-                // borderRadius: BorderRadius.circular(AppLayout.getHeight(15)),
-                borderRadius: BorderRadius.all(Radius.circular(15)),
-
-                boxShadow: [
-                  BoxShadow(
-                      blurRadius: 4,
-                      spreadRadius: 4,
-                      offset: Offset(0, 4),
-                      color: Colors.grey.withOpacity(0.2))
-                ],
-              ),
-              child: const Center(
-                child: Text(
-                  "Log out",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontSize: 25,
+                child: const Center(
+                  child: Text(
+                    "Log out",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontSize: 25,
+                    ),
                   ),
                 ),
               ),
-            ),
-          )
-
-        ],
-      ),
-    );
-  }
+            )
+          ],
+        ),
+      );
+    }
 }

@@ -1,14 +1,16 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:lost_and_found_app_staff/pages/claims/print_data_qrCode.dart';
+import 'package:lost_and_found_app_staff/pages/claims/take_picture_claim.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 
 import '../../utils/snackbar_utils.dart';
 
 class ScanQrCode extends StatefulWidget {
-  final String userId;
-  const ScanQrCode({Key? key, required this.userId}) : super(key: key);
+  final String userClaimId;
+  final String itemUserId;
+  final int itemId;
+  const ScanQrCode({Key? key, required this.userClaimId, required this.itemUserId, required this.itemId}) : super(key: key);
 
   @override
   State<ScanQrCode> createState() => _ScanQrCodeState();
@@ -31,15 +33,17 @@ class _ScanQrCodeState extends State<ScanQrCode> {
           });
 
           if (barcode != null) {
-            if (barcode.code == widget.userId) {
+            if (barcode.code == widget.userClaimId) {
               controller!.pauseCamera();
               Future.delayed(Duration(seconds: 1), () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => PrintDataQrCode(
-                      result: barcode.code!,
-                      userId: widget.userId,
+                    builder: (context) => TakePictureClaim(
+                      resultScanQrCode: barcode.code!,
+                      userId: widget.userClaimId,
+                      itemUserId: widget.itemUserId,
+                      itemId: widget.itemId,
                     ),
                   ),
                 );
@@ -103,15 +107,15 @@ class _ScanQrCodeState extends State<ScanQrCode> {
   }
 
   Widget buildQrView(BuildContext context) => QRView(
-        key: qrKey,
-        onQRViewCreated: onQRViewCreated,
-        overlay: QrScannerOverlayShape(
-            borderColor: Theme.of(context).primaryColor,
-            borderWidth: 10,
-            borderLength: 20,
-            borderRadius: 10,
-            cutOutSize: MediaQuery.of(context).size.width * 0.8),
-      );
+    key: qrKey,
+    onQRViewCreated: onQRViewCreated,
+    overlay: QrScannerOverlayShape(
+        borderColor: Theme.of(context).primaryColor,
+        borderWidth: 10,
+        borderLength: 20,
+        borderRadius: 10,
+        cutOutSize: MediaQuery.of(context).size.width * 0.8),
+  );
 
   void onQRViewCreated(QRViewController controller) {
     setState(() {
@@ -125,8 +129,8 @@ class _ScanQrCodeState extends State<ScanQrCode> {
     return Container(
       padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        color: Colors.white24
+          borderRadius: BorderRadius.circular(8),
+          color: Colors.white24
       ),
       child: Text(
         barcode != null ? 'Result: ${barcode!.code}' : 'Scan a code',
@@ -138,8 +142,8 @@ class _ScanQrCodeState extends State<ScanQrCode> {
   Widget buildControlButtons() => Container(
     padding: EdgeInsets.symmetric(horizontal: 16),
     decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(8),
-      color: Colors.white24
+        borderRadius: BorderRadius.circular(8),
+        color: Colors.white24
     ),
     child: Row(
       mainAxisSize: MainAxisSize.max,

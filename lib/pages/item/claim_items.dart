@@ -15,8 +15,9 @@ import '../claims/scan_qrcode.dart';
 
 class ClaimItems extends StatefulWidget {
   final int pageId;
+  final String itemUserId;
   final String page;
-  const ClaimItems({Key? key, required this.pageId, required this.page}) : super(key: key);
+  const ClaimItems({Key? key, required this.pageId, required this.page, required this.itemUserId}) : super(key: key);
 
   @override
   _ClaimItemsState createState() => _ClaimItemsState();
@@ -28,11 +29,13 @@ class _ClaimItemsState extends State<ClaimItems> {
   final ClaimController claimController = Get.put(ClaimController());
   final Map<String, dynamic> userMap = {};
   final UserController userController = Get.put(UserController());
+  bool itemClaimLoading = false;
 
   @override
   void initState() {
     super.initState();
     _isMounted = true;
+    itemClaimLoading = true;
     Future.delayed(Duration(seconds: 1), () async {
       await claimController.getListClaimByItemId(widget.pageId).then((result) async {
         if (_isMounted) {
@@ -51,6 +54,11 @@ class _ClaimItemsState extends State<ClaimItems> {
           }
         }
       });
+      setState(() {
+        itemClaimLoading = false;
+
+      });
+
     });
   }
 
@@ -80,6 +88,13 @@ class _ClaimItemsState extends State<ClaimItems> {
               ),
             ],
           ),
+          itemClaimLoading ? SizedBox(
+            width: AppLayout.getWidth(100),
+            height: AppLayout.getHeight(300),
+            child: const Center(
+              child: CircularProgressIndicator(),
+            ),
+          ) :
           userClaimList.isNotEmpty ? ListView.builder(
             physics: NeverScrollableScrollPhysics(),
             shrinkWrap: true,
@@ -163,7 +178,10 @@ class _ClaimItemsState extends State<ClaimItems> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => ScanQrCode(userId: claim['userId'],),
+                                  builder: (context) => ScanQrCode(
+                                    userClaimId: claim['userId'],
+                                    itemUserId: widget.itemUserId,
+                                    itemId: widget.pageId,),
                                 ),
                               );
                             });
@@ -220,7 +238,13 @@ class _ClaimItemsState extends State<ClaimItems> {
                 ),
               ) : Container();
             },
-          ) :Center(child: CircularProgressIndicator(),),
+          ) : SizedBox(
+            width: AppLayout.getScreenWidth(),
+            height: AppLayout.getScreenHeight()-400,
+            child: Center(
+              child: Text("Don't have any claims"),
+            ),
+          ),
         ],
       ),
     );
