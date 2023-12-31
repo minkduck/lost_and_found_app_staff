@@ -71,6 +71,21 @@ class _ItemsDetailsState extends State<ItemsDetails> {
       print('Error unclaiming item: $e');
     }
   }
+
+  Color _getStatusColor(String? status) {
+    switch (status) {
+      case 'ACTIVE':
+        return AppColors.primaryColor;
+      case 'RETURNED':
+        return AppColors.secondPrimaryColor;
+      case 'CLOSED':
+        return Colors.red;
+      default:
+        return Colors.grey; // Default color, you can change it to your preference
+    }
+  }
+
+
   Future<void> _refreshData() async {
     await itemController.getItemListById(widget.pageId).then((result) {
       if (_isMounted) {
@@ -213,7 +228,7 @@ class _ItemsDetailsState extends State<ItemsDetails> {
                 ),
                 Gap(AppLayout.getHeight(20)),
                 Text("   "+ itemlist['itemStatus'] ??
-                    'No Status',style: TextStyle(color: AppColors.primaryColor, fontSize: 20),),
+                    'No Status',style: TextStyle(color: _getStatusColor(itemlist['itemStatus']), fontSize: 20),),
 
                 // Container(
                 //     padding: EdgeInsets.only(left: AppLayout.getWidth(20)),
@@ -281,10 +296,16 @@ class _ItemsDetailsState extends State<ItemsDetails> {
                       ),
                     ),
                     Gap(AppLayout.getHeight(50)),
-                    Text(
-                      itemlist.isNotEmpty
-                        ? itemlist['user']['fullName'] :
-                        'No Name', style: TextStyle(fontSize: 20),)
+                    Expanded(
+                      child: Text(
+                        itemlist.isNotEmpty
+                          ? itemlist['user']['fullName'] :
+                          'No Name', style: TextStyle(fontSize: 20),
+                        maxLines: 5,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+
+                    )
                   ],
                 ),
                 Gap(AppLayout.getHeight(40)),
@@ -296,11 +317,7 @@ class _ItemsDetailsState extends State<ItemsDetails> {
                           Navigator.push(
                               context, MaterialPageRoute(builder: (context) => ClaimItems(pageId: widget.pageId, page: "Claim user",itemUserId: itemlist['user']['id'],)));
                         }))
-                    : Center(
-                    child: AppButton(
-                      boxColor: isItemClaimed ? AppColors.primaryColor : AppColors.secondPrimaryColor,
-                      textButton: isItemClaimed ? "Claimed" : "Claim",
-                      onTap: isItemClaimed ? unclaimItem : claimItem,)),
+                    : Container(),
               ],
             )
                 : SizedBox(

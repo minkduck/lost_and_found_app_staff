@@ -14,6 +14,10 @@ class AppConstrants{
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString('uid') ?? '';
   }
+  static Future<String> getRole() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('role') ?? '';
+  }
 
   static const String APP_NAME = "Lost&FoundStaff";
   static const int APP_VERSION = 1;
@@ -28,12 +32,17 @@ class AppConstrants{
 
   //category
   static const String GETCATEGORYWITHPAGINATION_URL = "$BASE_URL/api/categories/all";
-  static const String GETCATEGORYGROUPWITHPAGINATION_URL = "$BASE_URL/api/categoryGroups?IsActive=All";
+  static const String GETCATEGORYGROUPWITHPAGINATION_URL = "$BASE_URL/api/categoryGroups";
 
   //location
   static const String GETLOCATIONWITHPAGINATION_URL = "$BASE_URL/api/locations";
   static const String GETALLLOCATION_URL = "$BASE_URL/api/locations/all";
 
+  //campus
+  static const String GETALLCAMPUS_URL = "$BASE_URL/api/campuses";
+
+  //campus
+  static const String GETSTORAGE_URL = "$BASE_URL/api/storages?IsActive=All";
 
   //item
   static const String GETITEMWITHPAGINATION_URL = "$BASE_URL/api/items?ItemStatus=";
@@ -48,6 +57,8 @@ class AppConstrants{
   static const String GETPOSTMEDIABYID_URL = "$BASE_URL/api/posts/";
   static const String GETPOSTBYUID_URL = "$BASE_URL/api/posts/query-with-status?PostUserId=";
   static const String GETPOSTBYUSERID_URL = "$BASE_URL/api/posts?PostUserId=";
+  static const String GETPOSTWITHSTATUS = "$BASE_URL/api/posts/query-with-status?PostStatus=All";
+
 
   //comment
   static const String GETCOMMENTBYPOSTBID_URL = "$BASE_URL/api/comments/get-by-post/";
@@ -70,4 +81,10 @@ class AppConstrants{
   //receipt
   static const String POSTRECEIPT_URL = "$BASE_URL/api/receipts";
 
+  //notification
+  static const String GETALLNOTIBYUSERID_URL = "$BASE_URL/api/notifications/get-all-notification/";
+  static const String PUSHNOTIFICATIONS_URL = "$BASE_URL/api/notifications/push";
+
+  //giveaway
+  static const String GETGIVEAWAYSTATUS_URL = "$BASE_URL/api/giveaways/query-with-status?GiveawayStatus=";
 }

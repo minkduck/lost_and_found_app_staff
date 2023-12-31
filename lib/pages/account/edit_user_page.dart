@@ -29,7 +29,7 @@ class _UserEditPageState extends State<EditUserPage> {
   final ImagePicker imagePicker = ImagePicker();
   XFile? selectedImage;
 
-  List<String> genderOptions = ['Male', 'Female'];
+  List<String> genderOptions = ['Male', 'Female', "Others"];
 
   Future<void> selectImageFromGallery() async {
     final XFile? image = await imagePicker.pickImage(source: ImageSource.gallery);

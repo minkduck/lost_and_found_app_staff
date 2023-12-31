@@ -5,11 +5,13 @@ import 'package:lost_and_found_app_staff/pages/auth/login_page.dart';
 import 'package:lost_and_found_app_staff/pages/home_login_page.dart';
 import 'package:lost_and_found_app_staff/routes/route_helper.dart';
 import 'package:lost_and_found_app_staff/utils/theme.dart';
+import 'data/api/firebase/firebase_notification.dart';
 import 'helper/dependencies.dart' as dep;
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  await FirebaseNotification().initNotifications();
   await dep.init();
 
 
@@ -29,7 +31,7 @@ class MyApp extends StatelessWidget {
       darkTheme: TAppTheme.darkTheme,
       themeMode: ThemeMode.system,
 
-      home: HomeLoginPage(initialIndex: 0),
+      home: LoginPage(),
       getPages: RouteHelper.routes,
     );
   }

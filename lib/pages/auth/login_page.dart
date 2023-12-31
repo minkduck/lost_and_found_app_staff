@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:lost_and_found_app_staff/pages/home/home_page_manager.dart';
 import 'package:lost_and_found_app_staff/utils/app_assets.dart';
 import 'package:lost_and_found_app_staff/utils/app_layout.dart';
 import 'package:lost_and_found_app_staff/utils/colors.dart';
@@ -16,9 +17,12 @@ import 'package:http/http.dart' as http;
 import 'package:get/get.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
+import '../../data/api/user/user_controller.dart';
+import '../../test/test_page.dart';
+import '../../utils/app_constraints.dart';
 import '../../utils/snackbar_utils.dart';
 import '../../widgets/app_text_field_title_password.dart';
-import '../home/home_page.dart';
+import '../home/home_page_storage_manager.dart';
 
 
 class LoginPage extends StatefulWidget {
@@ -31,31 +35,94 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   var emailController = TextEditingController();
   var passwordController = TextEditingController();
+  late String accessToken = "";
 
+  Map<String, dynamic> userList = {};
+  final UserController userController= Get.put(UserController());
+  late String fcmToken ;
+
+  Future<void> getFcmToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    fcmToken = prefs.getString('fcmToken')!;
+    print("fcmToken: " + fcmToken);
+  }
+
+  Future<void> postAuthen() async {
+    await getFcmToken();
+    accessToken = await AppConstrants.getToken();
+
+    var headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $accessToken'
+    };
+    var request = http.Request('POST', Uri.parse(AppConstrants.AUTHENTICATE_URL+fcmToken));
+    request.body = json.encode({
+      "userDeviceToken" : fcmToken
+    });
+    request.headers.addAll(headers);
+
+    http.StreamedResponse response = await request.send();
+
+    if (response.statusCode == 200) {
+      print(await response.stream.bytesToString());
+      print("post Authen device token successful");
+    }
+    else {
+      print(response.reasonPhrase);
+    }
+
+  }
 
   Future<void> loginEmailPassword() async {
     try {
       final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: emailController.text,
-          password: passwordController.text
+        email: emailController.text,
+        password: passwordController.text,
       );
-      SnackbarUtils().showSuccess(title: "Successs", message: "Login successfully");
+
       final user = await FirebaseAuth.instance.currentUser!;
       final idTokenUser = await user.getIdToken();
+      userList = await userController.getUserLoginByUserId(user.uid, idTokenUser!);
+
+      final prefs = await SharedPreferences.getInstance();
       print("id Token User: " + idTokenUser.toString());
       if (idTokenUser != null && idTokenUser.length > 1000) {
         print(idTokenUser.substring(1000));
       } else {
         print("String is too short to perform the second substring.");
       }
-      final prefs = await SharedPreferences.getInstance();
+      // Wait for setString operation to complete before moving on
+      await prefs.setString('role', userList['role'].toString());
+
       await prefs.setString('access_token', idTokenUser.toString());
       await prefs.setString('uid', user.uid);
+      await postAuthen();
+
+      if (userList['role'] == "Storage Manager") {
+        SnackbarUtils().showSuccess(title: "Success", message: "Login successfully");
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomePageStorageManager(initialIndex: 0)),
+        );
+      } else if (userList['role'] == "Manager") {
+        SnackbarUtils().showSuccess(title: "Success", message: "Login successfully");
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomePageManager(initialIndex: 0,)),
+        );
+      } else {
+        SnackbarUtils().showError(title: "Unsuccess", message: "You do not have to log in");
+        // Handle other roles or logout here
+        logout();
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => LoginPage()),
+        );
+      }
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
         print('No user found for that email.');
         SnackbarUtils().showError(title: "Wrong email", message: "No user found for that email.");
-
       } else if (e.code == 'wrong-password') {
         print('Wrong password provided for that user.');
         SnackbarUtils().showError(title: "Wrong password", message: "Wrong password provided for that user.");
@@ -64,7 +131,11 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> logout() async {
-
+    try {
+      await FirebaseAuth.instance.signOut();
+    } catch (e) {
+      print('Error during logout: $e');
+    }
   }
 
 

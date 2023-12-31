@@ -5,6 +5,7 @@ import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:lost_and_found_app_staff/pages/account/profile_page.dart';
+import 'package:lost_and_found_app_staff/pages/auth/login_page.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -65,74 +66,67 @@ class _AccountPageState extends State<AccountPage> {
     @override
     Widget build(BuildContext context) {
       return Scaffold(
-        body: Column(
-          children: [
-            userList.isNotEmpty ? Column(
-              children: [
-                Gap(AppLayout.getHeight(50)),
-                Gap(AppLayout.getHeight(30)),
-                Center(
-                  child: CircleAvatar(
-                    radius: 80,
-                    backgroundImage:
-                    NetworkImage(userList['avatar'] ?? "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
+        body: Center(
+          child: Column(
+            children: [
+              Gap(AppLayout.getHeight(130)),
+              AppButton(boxColor: AppColors.primaryColor, textButton: "Profile", onTap: () {
+                Navigator.push(
+                    context, MaterialPageRoute(builder: (context) => ProfilePage()));
+
+              }),
+              Gap(AppLayout.getHeight(50)),
+              AppButton(boxColor: AppColors.primaryColor, textButton: "My QR Code", onTap: () {
+                Navigator.push(
+                    context, MaterialPageRoute(builder: (context) => MyQrCode()));
+
+              }),
+              Gap(AppLayout.getHeight(50)),
+              AppButton(boxColor: AppColors.primaryColor, textButton: "My List Claim Item", onTap: () {
+                Navigator.push(
+                    context, MaterialPageRoute(builder: (context) => ItemClaimByUser()));
+
+              }),
+              Gap(AppLayout.getHeight(80)),
+
+              InkWell(
+                onTap: () async {
+                  await logout();
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => LoginPage()),
+                  );
+                },
+                child: Ink(
+                  width: AppLayout.getWidth(325),
+                  height: AppLayout.getHeight(50),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor, // Set the color here
+                    // borderRadius: BorderRadius.circular(AppLayout.getHeight(15)),
+                    borderRadius: BorderRadius.all(Radius.circular(15)),
+
+                    boxShadow: [
+                      BoxShadow(
+                          blurRadius: 4,
+                          spreadRadius: 4,
+                          offset: Offset(0, 4),
+                          color: Colors.grey.withOpacity(0.2))
+                    ],
                   ),
-                ),
-              ],
-            ) :const Center(child: CircularProgressIndicator(),),
-            Gap(AppLayout.getHeight(50)),
-            AppButton(boxColor: AppColors.primaryColor, textButton: "Profile", onTap: () {
-              Navigator.push(
-                  context, MaterialPageRoute(builder: (context) => ProfilePage()));
-
-            }),
-            Gap(AppLayout.getHeight(50)),
-            AppButton(boxColor: AppColors.primaryColor, textButton: "My QR Code", onTap: () {
-              Navigator.push(
-                  context, MaterialPageRoute(builder: (context) => MyQrCode()));
-
-            }),
-            Gap(AppLayout.getHeight(50)),
-            AppButton(boxColor: AppColors.primaryColor, textButton: "My List Claim Item", onTap: () {
-              Navigator.push(
-                  context, MaterialPageRoute(builder: (context) => ItemClaimByUser()));
-
-            }),
-            Gap(AppLayout.getHeight(80)),
-
-            InkWell(
-              onTap: () async {
-                await logout();
-              },
-              child: Ink(
-                width: AppLayout.getWidth(325),
-                height: AppLayout.getHeight(50),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor, // Set the color here
-                  // borderRadius: BorderRadius.circular(AppLayout.getHeight(15)),
-                  borderRadius: BorderRadius.all(Radius.circular(15)),
-
-                  boxShadow: [
-                    BoxShadow(
-                        blurRadius: 4,
-                        spreadRadius: 4,
-                        offset: Offset(0, 4),
-                        color: Colors.grey.withOpacity(0.2))
-                  ],
-                ),
-                child: const Center(
-                  child: Text(
-                    "Log out",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontSize: 25,
+                  child: const Center(
+                    child: Text(
+                      "Log out",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 25,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            )
-          ],
+              )
+            ],
+          ),
         ),
       );
     }
