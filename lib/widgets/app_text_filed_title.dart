@@ -1,9 +1,7 @@
 import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:lost_and_found_app_staff/utils/app_layout.dart';
-
 import '../utils/colors.dart';
 
 class AppTextFieldTitle extends StatelessWidget {
@@ -11,15 +9,16 @@ class AppTextFieldTitle extends StatelessWidget {
   final String hintText;
   final String titleText;
   final String validator;
+  final int limitSymbols;
 
-  AppTextFieldTitle(
-      {Key? key,
-        required this.textController,
-        required this.hintText,
-        required this.titleText,
-        required this.validator
-      })
-      : super(key: key);
+  AppTextFieldTitle({
+    Key? key,
+    required this.textController,
+    required this.hintText,
+    required this.titleText,
+    required this.validator,
+    required this.limitSymbols,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -29,8 +28,9 @@ class AppTextFieldTitle extends StatelessWidget {
           alignment: Alignment.centerLeft,
           padding: EdgeInsets.only(left: 20),
           child: Text(
-              titleText,
-              style: Theme.of(context).textTheme.titleMedium,)
+            titleText,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
         ),
         Gap(AppLayout.getHeight(15)),
         Container(
@@ -51,27 +51,29 @@ class AppTextFieldTitle extends StatelessWidget {
             onSaved: (value) => textController = value,
             style: Theme.of(context).textTheme.headlineSmall,
             controller: textController,
+            maxLength: limitSymbols,
             decoration: InputDecoration(
               isDense: true,
-                // contentPadding: EdgeInsets.zero,
-                hintText: hintText,
-                hintStyle: Theme.of(context).textTheme.labelSmall,
-                focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppLayout.getHeight(20)),
-                    borderSide: BorderSide(
-                      width: 1.0,
-                      color: Colors.white,
-                    )),
-                enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppLayout.getHeight(20)),
-                    borderSide: BorderSide(width: 1.0, color: Colors.white))),
+              hintText: hintText,
+              hintStyle: Theme.of(context).textTheme.labelSmall,
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppLayout.getHeight(20)),
+                borderSide: BorderSide(
+                  width: 1.0,
+                  color: Colors.white,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppLayout.getHeight(20)),
+                borderSide: BorderSide(width: 1.0, color: Colors.white),
+              ),
+            ),
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return validator;
               }
               return null;
             },
-
           ),
         ),
       ],

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:lost_and_found_app_staff/data/api/category/category_controller.dart';
+import 'package:lost_and_found_app_staff/data/api/item/item_controller.dart';
 import 'package:lost_and_found_app_staff/data/api/location/location_controller.dart';
 import 'package:lost_and_found_app_staff/widgets/app_button.dart';
 import 'package:get/get.dart';
-import 'package:lost_and_found_app_staff/pages/item/take_picture.dart';
 
-import '../../data/api/category/category_controller.dart';
 import '../../utils/app_layout.dart';
 import '../../utils/colors.dart';
 import '../../widgets/app_drop_menu_filed_title.dart';
@@ -13,25 +13,39 @@ import '../../widgets/app_text_field_description.dart';
 import '../../widgets/app_text_filed_title.dart';
 import '../../widgets/big_text.dart';
 
-class CreateItem extends StatefulWidget {
-  const CreateItem({super.key});
+class EditItem extends StatefulWidget {
+  final int itemId;
+  final String initialCategory; // Add these fields to receive initial data
+  final String initialTitle;
+  final String initialDescription;
+  final String initialLocation;
+  final String foundDate;
+  final String status;
+
+  const EditItem({
+    Key? key,
+    required this.itemId,
+    required this.initialCategory,
+    required this.initialTitle,
+    required this.initialDescription,
+    required this.initialLocation,
+    required this.foundDate,
+    required this.status
+  }) : super(key: key);
 
   @override
-  State<CreateItem> createState() => _CreateItemState();
+  State<EditItem> createState() => _EditItemState();
 }
 
-class _CreateItemState extends State<CreateItem> {
-  var titleController =
-  TextEditingController();
-  var descriptionController =
-  TextEditingController();
+class _EditItemState extends State<EditItem> {
+  var titleController = TextEditingController();
+  var descriptionController = TextEditingController();
   bool isDescriptionFocused = false;
   bool _isMounted = false;
   final _formKey = GlobalKey<FormState>();
 
   String? selectedCategoryValue;
   String? selectedLocationValue;
-  String? selectedSlot;
   DateTime? selectedDate;
 
   List<dynamic> categoryList = [];
@@ -39,6 +53,24 @@ class _CreateItemState extends State<CreateItem> {
 
   List<dynamic> locationList = [];
   final LocationController locationController = Get.put(LocationController());
+
+  String findCategoryIdByName(String categoryName) {
+    var category = categoryList.firstWhere(
+          (category) => category['name'].toString() == categoryName,
+      orElse: () => {'id': 0}, // Assuming 'id' is an int, replace with the appropriate default value
+    );
+    return (category['id'] ?? 0).toString(); // Assuming 'id' is an int, convert to String
+  }
+
+  String findLocationIdByName(String locationName) {
+    var location = locationList.firstWhere(
+          (location) => location['locationName'].toString() == locationName,
+      orElse: () => {'id': 0}, // Assuming 'id' is an int, replace with the appropriate default value
+    );
+    return (location['id'] ?? 0).toString(); // Assuming 'id' is an int, convert to String
+  }
+
+  String? selectedSlot;
 
   List<DropdownMenuItem<String>> getSlotItems() {
     return [
@@ -80,18 +112,41 @@ class _CreateItemState extends State<CreateItem> {
   void initState() {
     super.initState();
     _isMounted = true;
+    titleController.text = widget.initialTitle;
+    descriptionController.text = widget.initialDescription;
+
+    if (widget.foundDate != null) {
+      String foundDate = widget.foundDate;
+      List<String> dateParts = foundDate.split('|');
+      if (dateParts.length == 2) {
+        String date = dateParts[0].trim();
+        String slot = dateParts[1].trim();
+        selectedDate = DateTime.parse(date);
+        selectedSlot = slot;
+      }
+    }
     categoryController.getCategoryList().then((result) {
       if (_isMounted) {
         setState(() {
           categoryList = result;
+
+          // Find initial category ID
+          String initialCategoryId = findCategoryIdByName(widget.initialCategory);
+          // Set the initial value for AppDropdownFieldTitle
+          selectedCategoryValue = initialCategoryId.isNotEmpty ? initialCategoryId : null;
         });
       }
     });
+
     locationController.getAllLocationPages().then((result) {
       if (_isMounted) {
         setState(() {
           locationList = result;
-          print("locationList" + locationList.toString());
+
+          // Find initial location ID
+          String initialLocationId = findLocationIdByName(widget.initialLocation);
+          // Set the initial value for AppDropdownFieldTitle
+          selectedLocationValue = initialLocationId.isNotEmpty ? initialLocationId : null;
         });
       }
     });
@@ -134,37 +189,35 @@ class _CreateItemState extends State<CreateItem> {
                       left: AppLayout.getWidth(30),
                       top: AppLayout.getHeight(10)),
                   child: Text(
-                    'Create Items',
+                    'Edit Item',
                     style: Theme.of(context).textTheme.displayMedium,
                   ),
                 ),
                 Gap(AppLayout.getHeight(20)),
 
-                //title
+                // Title
                 AppTextFieldTitle(
                   textController: titleController,
-                  hintText: "A title needs at least 10 characters",
                   titleText: "Title",
-                  validator: 'Please input title',
+                  validator: 'Please input title', hintText: '',
                   limitSymbols: 50,
                 ),
                 Gap(AppLayout.getHeight(45)),
 
-                //description
+                // Description
                 AppTextFieldDescription(
                   textController: descriptionController,
-                  hintText: "Describe important information",
                   titleText: "Description",
                   limitSymbols: 100,
                   onFocusChange: (isFocused) {
                     setState(() {
                       isDescriptionFocused = isFocused;
                     });
-                  },
+                  }, hintText: '',
                 ),
                 Gap(AppLayout.getHeight(45)),
 
-                //foundDate
+                //found date
                 Container(
                   alignment: Alignment.centerLeft,
                   padding: EdgeInsets.only(left: 20),
@@ -206,7 +259,7 @@ class _CreateItemState extends State<CreateItem> {
                 ),
                 Gap(AppLayout.getHeight(45)),
 
-                //slot
+                // slot
                 AppDropdownFieldTitle(
                   hintText: "Select a slot",
                   validator: "Please choose slot",
@@ -221,35 +274,11 @@ class _CreateItemState extends State<CreateItem> {
                 ),
 
                 Gap(AppLayout.getHeight(45)),
-
-                //category
-                AppDropdownFieldTitle(
-                  hintText: "Select a category",
-                  validator: "Please choose category",
-                  selectedValue: selectedCategoryValue,
-                  // selectedValue: categoryList.isNotEmpty ? selectedCategoryValue ?? categoryList.first['id']?.toString() ?? '': '',
-                  items: categoryList.map((category) {
-                    return DropdownMenuItem<String>(
-                      value: category['id']?.toString() ?? '',
-                      // Ensure a valid value
-                      child: Text(category['name']?.toString() ?? ''),
-                    );
-                  }).toList(),
-                  onChanged: (val) {
-                    setState(() {
-                      selectedCategoryValue = val;
-                    });
-                  },
-                  titleText: "Category",
-                ),
-
-                Gap(AppLayout.getHeight(45)),
-                //Location
+                // Location
                 AppDropdownFieldTitle(
                   hintText: "Select a location",
                   validator: "Please choose location",
                   selectedValue: selectedLocationValue,
-                  // selectedValue: locationList.isNotEmpty ? selectedLocationValue ?? locationList.first['id']?.toString() ?? '' : '',
                   items: locationList.map((location) {
                     return DropdownMenuItem<String>(
                       value: location['id']?.toString() ?? '',
@@ -261,30 +290,29 @@ class _CreateItemState extends State<CreateItem> {
                       selectedLocationValue = val?.toString();
                     });
                   },
-                  titleText: "Found Location",
+                  titleText: "Location",
                 ),
 
-                Gap(AppLayout.getHeight(100)),
-
+                Gap(AppLayout.getHeight(45)),
                 Center(
                   child: AppButton(
-                      boxColor: AppColors.primaryColor,
-                      textButton: "Continue",
-                      onTap: () {
-                        if (_formKey.currentState!.validate()) {
-                          String foundDate = "$selectedDate|${selectedSlot!}";
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => TakePictureScreen(
-                                    title: titleController.text,
-                                    description: descriptionController.text,
-                                    category: selectedCategoryValue!,
-                                    location: selectedLocationValue!,
-                                    foundDate: foundDate,
-                                  )));
-                        }
-                      }),
+                    boxColor: AppColors.primaryColor,
+                    textButton: "Save Changes",
+                    onTap: () async {
+                      if (_formKey.currentState!.validate()) {
+                        String foundDate = "$selectedDate|${selectedSlot!}";
+                        print("foundDate: "+ foundDate);
+                        await ItemController().updateItemById(widget.itemId,
+                            titleController.text,
+                            descriptionController.text,
+                            selectedCategoryValue!,
+                            selectedLocationValue!,
+                            // widget.status,
+                            foundDate
+                        );
+                      }
+                    },
+                  ),
                 ),
               ],
             ),
@@ -292,5 +320,11 @@ class _CreateItemState extends State<CreateItem> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _isMounted = false;
+    super.dispose();
   }
 }

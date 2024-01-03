@@ -38,7 +38,7 @@ class _ItemClaimByUserState extends State<ItemClaimByUser> {
         }
       }
     }
-    return "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg";
+    return "https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png";
   }
 
   @override

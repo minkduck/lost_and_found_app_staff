@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:lost_and_found_app_staff/data/api/storage/storage_controller.dart';
 
 import '../../data/api/campus/campus_controller.dart';
 import '../../utils/app_layout.dart';
 import '../../utils/colors.dart';
+import '../../utils/snackbar_utils.dart';
 import '../../widgets/big_text.dart';
+import 'item_storage_list.dart';
 
 class StorageCabinet extends StatefulWidget {
   const StorageCabinet({super.key});
@@ -19,6 +20,7 @@ class StorageCabinet extends StatefulWidget {
 class _StorageCabinetState extends State<StorageCabinet> {
   List<dynamic> storageGroupList = [];
   final StorageController storageController = Get.put(StorageController());
+  bool? loadFinished = false;
 
   @override
   void initState() {
@@ -29,10 +31,18 @@ class _StorageCabinetState extends State<StorageCabinet> {
         setState(() {
           storageGroupList = result;
           print(storageGroupList);
+          loadFinished = true;
         });
       });
     });
 
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    loadFinished = false;
   }
 
   @override
@@ -65,6 +75,7 @@ class _StorageCabinetState extends State<StorageCabinet> {
                 ],
               ),
               Gap(AppLayout.getHeight(50)),
+              if (storageGroupList.isNotEmpty)
               ExpansionPanelList.radio(
                 expandedHeaderPadding: EdgeInsets.all(12),
                 elevation: 1,
@@ -180,7 +191,7 @@ class _StorageCabinetState extends State<StorageCabinet> {
                                     radius: 25,
                                     child: CircleAvatar(
                                       radius: 25,
-                                      backgroundImage: NetworkImage(group['mainStorageManager']['avatar']??"https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
+                                      backgroundImage: NetworkImage(group['mainStorageManager']['avatar']??"https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png"),
                                     ),
                                   ),
                                 ),
@@ -221,7 +232,20 @@ class _StorageCabinetState extends State<StorageCabinet> {
                           title: Text(cabinet['name'].toString()),
                           subtitle: GestureDetector(
                             onTap: () {
-                              print("hello");
+                              if(cabinet['items'].length.toString() == '0'){
+                                SnackbarUtils().showInfo(title: "", message: "It doesn't have any items");
+                              } else {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ItemCabinerList(
+                                      itemCabinetList: cabinet['items'],
+                                      cabinetName: cabinet['name'],
+                                      // Assuming you want details of the first item
+                                    ),
+                                  ),
+                                );
+                              }
                             },
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -315,7 +339,7 @@ class _StorageCabinetState extends State<StorageCabinet> {
                                         ),
                                       ),
                                       TextSpan(
-                                        text: "5",
+                                        text: cabinet['items'].length.toString(),
 
                                         // Add styling properties for the ID value if needed
                                       ),
@@ -333,8 +357,23 @@ class _StorageCabinetState extends State<StorageCabinet> {
                     ),
                   );
                 }).toList(),
-              ),
-
+              )
+              else if (storageGroupList.isEmpty && loadFinished!)
+                SizedBox(
+                  width: AppLayout.getScreenWidth(),
+                  height: AppLayout.getScreenHeight()-200,
+                  child: Center(
+                    child: Text("It don't have any storage"),
+                  ),
+                )
+              else
+                SizedBox(
+                  width: AppLayout.getWidth(100),
+                  height: AppLayout.getHeight(300),
+                  child: const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                )
             ],
           ),
         ),

@@ -17,6 +17,7 @@ class CategoryList extends StatefulWidget {
 class _CategoryListState extends State<CategoryList> {
   List<dynamic> categoryGroupList = [];
   final CategoryController categoryController = Get.put(CategoryController());
+  bool? loadFinished = false;
 
   @override
   void initState() {
@@ -26,9 +27,17 @@ class _CategoryListState extends State<CategoryList> {
         setState(() {
           categoryGroupList = result;
           print(categoryGroupList);
+          loadFinished = true;
         });
       });
     });
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    loadFinished = false;
   }
 
   @override
@@ -62,6 +71,7 @@ class _CategoryListState extends State<CategoryList> {
                 ],
               ),
               Gap(AppLayout.getHeight(50)),
+              if (categoryGroupList.isNotEmpty)
               ExpansionPanelList.radio(
                 expandedHeaderPadding: EdgeInsets.all(12),
                 elevation: 1,
@@ -248,7 +258,23 @@ class _CategoryListState extends State<CategoryList> {
                     ),
                   );
                 }).toList(),
-              ),
+              )
+              else if (categoryGroupList.isEmpty && loadFinished!)
+                SizedBox(
+                  width: AppLayout.getScreenWidth(),
+                  height: AppLayout.getScreenHeight()-200,
+                  child: Center(
+                    child: Text("It don't have any category"),
+                  ),
+                )
+              else
+                SizedBox(
+                  width: AppLayout.getWidth(100),
+                  height: AppLayout.getHeight(300),
+                  child: const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                )
             ],
           ),
         ),

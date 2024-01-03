@@ -569,7 +569,6 @@ class _PostScreenState extends State<PostScreen> {
                                           ],
                                         ),
                                         Gap(AppLayout.getHeight(10)),
-/*
                                         Row(
                                           children: [
                                             Icon(
@@ -578,7 +577,7 @@ class _PostScreenState extends State<PostScreen> {
                                               size: AppLayout.getHeight(24),
                                             ),
                                             const Gap(5),
-                                            post['lostDateFrom'] != null && post['lostDateTo'] != null ? Row(
+                                            post['lostDateFrom'] != null || post['lostDateTo'] != null ? Row(
                                               children: [
                                                 Text(
                                                   post['lostDateFrom'] != null
@@ -600,7 +599,7 @@ class _PostScreenState extends State<PostScreen> {
                                             ) : Text("Don't remember"),
                                           ],
                                         ),
-*/
+                                        Gap(AppLayout.getHeight(10)),
                                         Row(
                                           children: [
                                             Icon(

@@ -11,13 +11,17 @@ import 'package:get/get.dart';
 
 import '../../data/api/item/claim_controller.dart';
 import '../../data/api/item/item_controller.dart';
+import '../../data/api/message/Chat.dart';
+import '../../data/api/message/chat_controller.dart';
 import '../../routes/route_helper.dart';
 import '../../utils/app_constraints.dart';
 import '../../utils/app_layout.dart';
 import '../../utils/colors.dart';
 import '../../widgets/big_text.dart';
 import '../../widgets/time_widget.dart';
+import '../message/chat_page.dart';
 import 'claim_items.dart';
+import 'edit_item.dart';
 
 class ItemsDetails extends StatefulWidget {
   final int pageId;
@@ -92,18 +96,45 @@ class _ItemsDetailsState extends State<ItemsDetails> {
         setState(() {
           itemlist = result;
           if (itemlist != null) {
-            var itemMedias = itemlist['itemMedias'];
+            if (itemlist['itemClaims'] != null && itemlist['itemClaims'] is List) {
+              var claimsList = itemlist['itemClaims'];
+              var matchingClaim = claimsList.firstWhere(
+                    (claim) => claim['userId'] == uid,
+                orElse: () => null,
+              );
 
-            if (itemMedias != null && itemMedias is List) {
-              List mediaList = itemMedias;
-
-              for (var media in mediaList) {
-                String imageUrl = media['media']['url'];
-                imageUrls.add(imageUrl);
+              if (matchingClaim != null) {
+                isItemClaimed = matchingClaim['claimStatus'] == true ? true : false;
               }
-              isItemClaimed = itemlist['itemClaims']['claimStatus']  ?? false;
-
             }
+            if (itemlist['foundDate'] != null) {
+              String foundDate = itemlist['foundDate'];
+              if (foundDate.contains('|')) {
+                List<String> dateParts = foundDate.split('|');
+                if (dateParts.length == 2) {
+                  String date = dateParts[0].trim();
+                  String slot = dateParts[1].trim();
+
+                  // Check if the date format needs to be modified
+                  if (date.contains(' ')) {
+                    // If it contains time, remove the time part
+                    date = date.split(' ')[0];
+                  }
+
+                  // Parse the original date
+                  DateFormat originalDateFormat = DateFormat("yyyy-MM-dd");
+                  DateTime originalDate = originalDateFormat.parse(date);
+
+                  // Format the date in the desired format
+                  DateFormat desiredDateFormat = DateFormat("dd-MM-yyyy");
+                  String formattedDate = desiredDateFormat.format(originalDate);
+
+                  // Update the foundDate in the itemlist
+                  itemlist['foundDate'] = '$formattedDate $slot';
+                }
+              }
+            }
+
           }
         });
       }
@@ -151,6 +182,34 @@ class _ItemsDetailsState extends State<ItemsDetails> {
                   isItemClaimed = matchingClaim['claimStatus'] == true ? true : false;
                 }
               }
+              if (itemlist['foundDate'] != null) {
+                String foundDate = itemlist['foundDate'];
+                if (foundDate.contains('|')) {
+                  List<String> dateParts = foundDate.split('|');
+                  if (dateParts.length == 2) {
+                    String date = dateParts[0].trim();
+                    String slot = dateParts[1].trim();
+
+                    // Check if the date format needs to be modified
+                    if (date.contains(' ')) {
+                      // If it contains time, remove the time part
+                      date = date.split(' ')[0];
+                    }
+
+                    // Parse the original date
+                    DateFormat originalDateFormat = DateFormat("yyyy-MM-dd");
+                    DateTime originalDate = originalDateFormat.parse(date);
+
+                    // Format the date in the desired format
+                    DateFormat desiredDateFormat = DateFormat("dd-MM-yyyy");
+                    String formattedDate = desiredDateFormat.format(originalDate);
+
+                    // Update the foundDate in the itemlist
+                    itemlist['foundDate'] = '$formattedDate $slot';
+                  }
+                }
+              }
+
             }
           });
         }
@@ -173,29 +232,65 @@ class _ItemsDetailsState extends State<ItemsDetails> {
               children: [
                 Gap(AppLayout.getHeight(20)),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pop(context);
-                      },
-                      child: Icon(
-                        Icons.arrow_back_ios,
-                        color: Colors.grey,
-                        size: 30,
-                      ),
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pop(context);
+                          },
+                          child: Icon(
+                            Icons.arrow_back_ios,
+                            color: Colors.grey,
+                            size: 30,
+                          ),
+                        ),
+                        BigText(
+                          text: "Home",
+                          size: 20,
+                          color: AppColors.secondPrimaryColor,
+                          fontW: FontWeight.w500,
+                        ),
+                      ],
                     ),
-                    BigText(
-                      text: "Items",
-                      size: 20,
-                      color: AppColors.secondPrimaryColor,
-                      fontW: FontWeight.w500,
-                    ),
+                    itemlist['user']['id'] == uid ? itemlist['itemStatus'] != 'RETURNED' ? Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => EditItem(
+                                  itemId: itemId,
+                                  initialCategory: itemlist['categoryName'], // Pass the initial data
+                                  initialTitle: itemlist['name'], // Pass the initial data
+                                  initialDescription: itemlist['description'], // Pass the initial data
+                                  initialLocation: itemlist['locationName'],
+                                  status: itemlist['itemStatus'],
+                                  foundDate: itemlist['foundDate'],
+                                ),
+                              ),
+                            );
+                          },
+                          child: Text("Edit", style: TextStyle(color: AppColors.primaryColor, fontSize: 20),),
+                        ),
+                        Gap(AppLayout.getWidth(15)),
+                        GestureDetector(
+                          onTap: () async {
+                            await itemController.deleteItemById(itemId);
+                          },
+                          child: Text("Delete", style: TextStyle(color: Colors.redAccent, fontSize: 20),),
+                        ),
+
+                      ],
+                    ) : Container() : Container()
                   ],
                 ),
                 Padding(
                   padding: EdgeInsets.only(
                       left: AppLayout.getWidth(30), top: AppLayout.getHeight(10)),
-                  child: Text('Items', style: Theme.of(context).textTheme.displayMedium,),
+                  child: Text('Items Details', style: Theme.of(context).textTheme.displayMedium,),
                 ),
                 Gap(AppLayout.getHeight(20)),
 
@@ -209,7 +304,7 @@ class _ItemsDetailsState extends State<ItemsDetails> {
                     itemBuilder: (context, index) {
                       return Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: Image.network(imageUrls[index]??"https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg",fit: BoxFit.fill,));
+                        child: Image.network(imageUrls[index]??"https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png",fit: BoxFit.fill,));
                       // child: Image.network(imageUrls[index],fit: BoxFit.fill,));               );
                     },
                   ),
@@ -244,7 +339,7 @@ class _ItemsDetailsState extends State<ItemsDetails> {
                   ),
 
                 ),
-                // time
+                // create Date
                 Container(
                     padding: EdgeInsets.only(
                         left: AppLayout.getWidth(16),
@@ -252,9 +347,32 @@ class _ItemsDetailsState extends State<ItemsDetails> {
                     child: IconAndTextWidget(
                         icon: Icons.timer_sharp,
                         text: itemlist['createdDate'] != null
-                            ? '${DateFormat('dd-MM-yyyy').format(DateTime.parse(itemlist['createdDate']))} at ${DateFormat('HH:mm:ss').format(DateTime.parse(itemlist['createdDate']))}'
+                            ? "CreatedDate: " '${DateFormat('dd-MM-yyyy').format(DateTime.parse(itemlist['createdDate']))} at ${DateFormat('HH:mm:ss').format(DateTime.parse(itemlist['createdDate']))}'
                             : 'No Date',
                         iconColor: Colors.grey)),
+
+                //foundDate
+                Container(
+                    padding: EdgeInsets.only(
+                        left: AppLayout.getWidth(16),
+                        top: AppLayout.getHeight(8)),
+                    child: IconAndTextWidget(
+                        icon: Icons.timer_sharp,
+                        text: "FoundDate: " + itemlist['foundDate'],
+                        iconColor: Colors.grey)),
+                Gap(AppLayout.getHeight(5)),
+                //category
+                Container(
+                    padding: EdgeInsets.only(
+                        left: AppLayout.getWidth(16),
+                        top: AppLayout.getHeight(8)),
+                    child: IconAndTextWidget(
+                        icon: Icons.category,
+                        text: itemlist.isNotEmpty
+                            ? itemlist['categoryName']
+                            : 'No Location',
+                        iconColor: Colors.black)),
+                Gap(AppLayout.getHeight(5)),
                 //location
                 Container(
                     padding: EdgeInsets.only(
@@ -291,7 +409,7 @@ class _ItemsDetailsState extends State<ItemsDetails> {
                         radius: 50,
                         child: CircleAvatar(
                           radius: 50,
-                          backgroundImage: NetworkImage(itemlist['user']['avatar']??"https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
+                          backgroundImage: NetworkImage(itemlist['user']['avatar']??"https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png"),
                         ),
                       ),
                     ),
@@ -309,6 +427,52 @@ class _ItemsDetailsState extends State<ItemsDetails> {
                   ],
                 ),
                 Gap(AppLayout.getHeight(40)),
+                itemlist['user']['id'] == uid ? Container() : Center(
+                    child: AppButton(boxColor: AppColors.secondPrimaryColor, textButton: "Send Message", onTap: () async {
+                      String otherUserId = itemlist['user']['id'];
+
+                      await ChatController().createUserChats(uid, otherUserId);
+                      // Get.toNamed(RouteHelper.getInitial(2));
+                      String chatId = uid.compareTo(otherUserId) > 0 ? uid + otherUserId : otherUserId + uid;
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ChatPage(
+                            chat: Chat(
+                              uid: otherUserId,
+                              name: itemlist['user']['fullName'] ?? 'No Name',
+                              image: itemlist['user']['avatar'] ?? '',
+                              lastMessage: '', // You may want to pass initial message if needed
+                              time: '',
+                              chatId:chatId, // You may want to pass the chatId if needed
+                              formattedDate: '',
+                              otherId: otherUserId,
+                              date: DateTime.now(),
+                            ),
+                          ),
+                        ),
+                      );
+/*                      BuildContext contextReference = context;
+
+                      // Find the chatId based on user IDs
+                      String myUid = await AppConstrants.getUid(); // Get current user ID
+                      String chatId = myUid.compareTo(otherUserId) > 0 ? myUid + otherUserId : otherUserId + myUid;
+
+                      // Navigate to ChatPage with the relevant chat information
+                      Navigator.push(
+                        contextReference, // Use the context reference
+                        MaterialPageRoute(
+                          builder: (context) => ChatPage(
+                            chat: Chat(
+                              chatId: chatId,
+                              uid: myUid,
+                              otherId: otherUserId,
+                            ),
+                          ),
+                        ),
+                      );*/
+                    })),
+                Gap(AppLayout.getHeight(20)),
                 itemlist['user']['id'] == uid ? Center(
                     child: AppButton(
                         boxColor: AppColors.secondPrimaryColor,
@@ -321,8 +485,8 @@ class _ItemsDetailsState extends State<ItemsDetails> {
               ],
             )
                 : SizedBox(
-              width: AppLayout.getWidth(100),
-              height: AppLayout.getHeight(300),
+              width: AppLayout.getScreenWidth(),
+              height: AppLayout.getScreenHeight(),
               child: const Center(
                 child: CircularProgressIndicator(),
               ),

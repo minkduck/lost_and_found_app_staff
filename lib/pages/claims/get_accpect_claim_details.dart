@@ -101,7 +101,7 @@ class _GetAccepctClaimDetailState extends State<GetAccepctClaimDetail> {
               Row(children: [
                 CircleAvatar(
                   radius: 30,
-                  backgroundImage: NetworkImage(userList['avatar'] ?? 'https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg'),
+                  backgroundImage: NetworkImage(userList['avatar'] ?? 'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png'),
                 ),
                 Gap(AppLayout.getWidth(10)),
                 Text(
@@ -120,7 +120,7 @@ class _GetAccepctClaimDetailState extends State<GetAccepctClaimDetail> {
               Row(children: [
                 CircleAvatar(
                   radius: 30,
-                  backgroundImage: NetworkImage(userItemList['avatar'] ?? 'https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg'),
+                  backgroundImage: NetworkImage(userItemList['avatar'] ?? 'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png'),
                 ),
                 Gap(AppLayout.getWidth(10)),
                 Text(

@@ -114,8 +114,9 @@ class ItemController extends GetxController{
   Future<void> createItem(
       String name,
       String description,
-      String CategoryId,
-      String LocationId,
+      String categoryId,
+      String locationId,
+      String foundDate,
       List<String> medias ) async {
     accessToken = await AppConstrants.getToken();
     var headers = {
@@ -125,8 +126,10 @@ class ItemController extends GetxController{
     request.fields.addAll({
       'Name': name,
       'Description': description,
-      'CategoryId': CategoryId,
-      'LocationId': LocationId,
+      'CategoryId': categoryId,
+      'LocationId': locationId,
+      'FoundDate': foundDate,
+
     });
     for (var media in medias) {
       request.files.add(await http.MultipartFile.fromPath('Medias', media));
@@ -137,7 +140,7 @@ class ItemController extends GetxController{
 
     if (response.statusCode == 200) {
       print(await response.stream.bytesToString());
-      SnackbarUtils().showSuccess(title: "Successs", message: "Create new item successfully");
+      SnackbarUtils().showSuccess(title: "Success", message: "Create item successfully");
       Get.toNamed(RouteHelper.getInitial(0));
     }
     else {
@@ -148,4 +151,67 @@ class ItemController extends GetxController{
 
   }
 
+  Future<void> deleteItemById(int itemId) async {
+    accessToken = await AppConstrants.getToken();
+    var headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $accessToken'
+    };
+    var request = http.Request('DELETE', Uri.parse("${AppConstrants.POSTITEM_URL}/$itemId"));
+
+    request.headers.addAll(headers);
+
+    http.StreamedResponse response = await request.send();
+
+    if (response.statusCode == 204) {
+      print(await response.stream.bytesToString());
+      SnackbarUtils().showSuccess(title: "Success", message: "Delete item successfully");
+      Get.toNamed(RouteHelper.getInitial(0));
+    } else {
+      print(response.statusCode);
+      print(response.reasonPhrase);
+      throw Exception('Failed to delete getItemList');
+    }
+  }
+
+  Future<void> updateItemById(
+      int itemId,
+      String title,
+      String description,
+      String categoryId,
+      String locationId,
+      String foundDate,
+      // String status
+      ) async {
+    accessToken = await AppConstrants.getToken();
+    var headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $accessToken'
+    };
+    var request = http.Request('PUT', Uri.parse("${AppConstrants.POSTITEM_URL}/$itemId"));
+
+    request.body = json.encode({
+      "name": title,
+      "description": description,
+      "locationId": locationId,
+      "categoryId": categoryId,
+      "cabinetId": null,
+      // "itemStatus": status,
+      "foundDate": foundDate
+    });
+    print(request.body);
+    request.headers.addAll(headers);
+
+    http.StreamedResponse response = await request.send();
+
+    if (response.statusCode == 200) {
+      print(await response.stream.bytesToString());
+      SnackbarUtils().showSuccess(title: "Success", message: "Edit item successfully");
+      Get.toNamed(RouteHelper.getInitial(0));
+    } else {
+      print(response.statusCode);
+      print(response.reasonPhrase);
+      throw Exception('Failed to delete getItemList');
+    }
+  }
 }

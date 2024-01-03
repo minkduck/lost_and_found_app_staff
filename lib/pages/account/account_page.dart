@@ -81,12 +81,6 @@ class _AccountPageState extends State<AccountPage> {
                     context, MaterialPageRoute(builder: (context) => MyQrCode()));
 
               }),
-              Gap(AppLayout.getHeight(50)),
-              AppButton(boxColor: AppColors.primaryColor, textButton: "My List Claim Item", onTap: () {
-                Navigator.push(
-                    context, MaterialPageRoute(builder: (context) => ItemClaimByUser()));
-
-              }),
               Gap(AppLayout.getHeight(80)),
 
               InkWell(

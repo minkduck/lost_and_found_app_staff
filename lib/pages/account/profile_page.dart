@@ -96,7 +96,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   CircleAvatar(
                     radius: 80,
                     backgroundImage:
-                    NetworkImage(userList['avatar'] ?? "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
+                    NetworkImage(userList['avatar'] ?? "https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png"),
                   ),
                   Gap(AppLayout.getHeight(30)),
                   Text(userList['fullName']?? '-', style: Theme.of(context).textTheme.headlineMedium,),

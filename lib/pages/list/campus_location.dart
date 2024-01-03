@@ -17,6 +17,7 @@ class CampusLocation extends StatefulWidget {
 
 class _CampusLocationState extends State<CampusLocation> {
   List<dynamic> campusGroupList = [];
+  bool? loadFinished = false;
   final CampusController campusController = Get.put(CampusController());
 
   @override
@@ -27,11 +28,19 @@ class _CampusLocationState extends State<CampusLocation> {
       await campusController.getAllCampus().then((result) {
         setState(() {
           campusGroupList = result;
+          loadFinished = true;
           print(campusGroupList);
         });
       });
     });
 
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    loadFinished = false;
   }
 
   @override
@@ -64,6 +73,7 @@ class _CampusLocationState extends State<CampusLocation> {
                 ],
               ),
               Gap(AppLayout.getHeight(50)),
+              if (campusGroupList.isNotEmpty)
               ExpansionPanelList.radio(
                 expandedHeaderPadding: EdgeInsets.all(12),
                 elevation: 1,
@@ -210,7 +220,23 @@ class _CampusLocationState extends State<CampusLocation> {
                     ),
                   );
                 }).toList(),
-              ),
+              )
+              else if (campusGroupList.isEmpty && loadFinished!)
+                SizedBox(
+                  width: AppLayout.getScreenWidth(),
+                  height: AppLayout.getScreenHeight()-200,
+                  child: Center(
+                    child: Text("It don't have any campus"),
+                  ),
+                )
+              else
+                SizedBox(
+                  width: AppLayout.getWidth(100),
+                  height: AppLayout.getHeight(300),
+                  child: const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                )
             ],
           ),
         ),

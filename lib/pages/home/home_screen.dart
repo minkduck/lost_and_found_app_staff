@@ -42,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool itemsSelected = true;
   bool myItemsSelected = false;
   late String role = "";
+  bool? finishedLoading = false;
 
   bool _isMounted = false;
   String? firstLogin = '';
@@ -59,7 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       }
     }
-    return "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg";
+    return "https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png";
   }
 
   Color _getStatusColor(String? status) {
@@ -215,6 +216,7 @@ class _HomeScreenState extends State<HomeScreen> {
             print("role:" + role);
           });
         });
+        finishedLoading = true;
 
       });
 
@@ -223,6 +225,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _isMounted = false;
+    finishedLoading= false;
     super.dispose();
   }
 
@@ -379,7 +382,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Gap(AppLayout.getHeight(25)),
                 GetBuilder<ItemController>(builder: (item) {
                   return role == "Storage Manager" ? itemsSelected
-                      ? itemlist.isNotEmpty
+                      ? itemlist.isNotEmpty && finishedLoading!
                       ? Center(
                     child: GridView.builder(
                       padding: EdgeInsets.all(15),
@@ -517,7 +520,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: CircularProgressIndicator(),
                     ),
                   ) :
-                  myItemlist.isNotEmpty // Render myItemList grid view when My Items button is selected
+                  myItemlist.isNotEmpty && finishedLoading! // Render myItemList grid view when My Items button is selected
                       ? Center(
                     child: GridView.builder(
                       padding: EdgeInsets.all(15),
@@ -534,7 +537,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       itemBuilder: (context, index) {
                         final item = filteredMyItems[index];
                         final mediaUrl = getUrlFromItem(item) ??
-                            "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg";
+                            "https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png";
 
                         return Container(
                           decoration: const BoxDecoration(
@@ -555,7 +558,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       (context, error, stackTrace) {
                                     // Handle image loading errors
                                     return Image.network(
-                                        "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg",
+                                        "https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png",
                                         fit: BoxFit.fill);
                                   },
                                 ),

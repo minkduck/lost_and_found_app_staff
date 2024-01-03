@@ -21,6 +21,7 @@ class GiveawayScreen extends StatefulWidget {
 
 class _GiveawayScreenState extends State<GiveawayScreen> {
   bool _isMounted = false;
+  bool? loadFinished = false;
 
   List<dynamic> giveawayList = [];
   final GiveawayController giveawayController = Get.put(GiveawayController());
@@ -38,7 +39,7 @@ class _GiveawayScreenState extends State<GiveawayScreen> {
         }
       }
     }
-    return "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg";
+    return "https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png";
   }
 
   @override
@@ -50,10 +51,18 @@ class _GiveawayScreenState extends State<GiveawayScreen> {
         if (_isMounted) {
           setState(() {
             giveawayList = result;
+            loadFinished = true;
           });
         }
       });
     });
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    loadFinished = false;
   }
 
   @override
@@ -75,6 +84,7 @@ class _GiveawayScreenState extends State<GiveawayScreen> {
                   ),
                 ],
               ),
+              if (giveawayList.isNotEmpty)
               ListView.builder(
                   shrinkWrap: true,
                   reverse: true,
@@ -245,7 +255,22 @@ class _GiveawayScreenState extends State<GiveawayScreen> {
                       ),
                     );
                   })
-
+              else if (giveawayList.isEmpty && loadFinished!)
+                SizedBox(
+                  width: AppLayout.getScreenWidth(),
+                  height: AppLayout.getScreenHeight()-200,
+                  child: Center(
+                    child: Text("It don't have any giveaway"),
+                  ),
+                )
+              else
+                SizedBox(
+                  width: AppLayout.getWidth(100),
+                  height: AppLayout.getHeight(300),
+                  child: const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                )
             ],
           ),
         ),

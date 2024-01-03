@@ -302,7 +302,6 @@ class _PostDetailState extends State<PostDetail> {
                             ],
                           ),
                           Gap(AppLayout.getHeight(15)),
-/*
                           Row(
                             children: [
                               Icon(
@@ -311,7 +310,7 @@ class _PostDetailState extends State<PostDetail> {
                                 size: AppLayout.getHeight(24),
                               ),
                               const Gap(5),
-                              postList['lostDateFrom'] != null && postList['lostDateTo'] != null ? Row(
+                              postList['lostDateFrom'] != null || postList['lostDateTo'] != null ? Row(
                                 children: [
                                   Text(
                                     postList['lostDateFrom'] != null
@@ -333,7 +332,7 @@ class _PostDetailState extends State<PostDetail> {
                               ) : Text("Don't remember"),
                             ],
                           ),
-*/
+                          Gap(AppLayout.getHeight(15)),
                           Row(
                             children: [
                               Icon(

@@ -15,8 +15,8 @@ class LocalNotificationService {
   static void showNotificationOnForeground(RemoteMessage message) {
     final notificationDetail = NotificationDetails(
         android: AndroidNotificationDetails(
-            "com.example.lost_and_find_app",
-            "lost_and_find_app",
+            "com.example.lost_and_found_app_staff",
+            "lost_and_found_app_staff",
             importance: Importance.max,
             priority: Priority.high));
 
