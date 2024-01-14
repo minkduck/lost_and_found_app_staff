@@ -92,6 +92,7 @@ class _GiveawayScreenState extends State<GiveawayScreen> {
                   itemCount: giveawayList.length,
                   itemBuilder: (BuildContext context, int index) {
                     final giveaway = giveawayList[index];
+                    final winnerUser = giveaway['winnerUser'];
 
                     return Container(
                       decoration: BoxDecoration(
@@ -190,11 +191,23 @@ class _GiveawayScreenState extends State<GiveawayScreen> {
                           Gap(AppLayout.getHeight(20)),
                           Container(
                             alignment: Alignment.bottomLeft,
-                            child: Text(
-                              "Status: ${giveaway['giveawayStatus']}",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall,
+                            child: Text.rich(
+                              TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: "Status: ",
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleSmall,
+                                  ),
+                                  TextSpan(
+                                    text: "${giveaway['giveawayStatus']}",
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleSmall?.copyWith(color: AppColors.primaryColor),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
 
@@ -209,48 +222,63 @@ class _GiveawayScreenState extends State<GiveawayScreen> {
                             ),
                           ),
                           Gap(AppLayout.getHeight(20)),
-
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              color: AppColors.primaryColor,  // Set color to AppColors.primaryColor
-                            ),
-                            child: InkWell(
-                              onTap: () {
-                              },
-                              child: Ink(
-                                width: AppLayout.getWidth(250),
-                                height: AppLayout.getHeight(50),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primaryColor,  // Use the provided boxColor
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(AppLayout.getHeight(15)) ,
-                                    topRight:  Radius.circular(AppLayout.getHeight(15)) ,
-                                    bottomLeft: Radius.circular(AppLayout.getHeight(15)) ,
-                                    bottomRight: Radius.circular(AppLayout.getHeight(15)) ,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.grey.withOpacity(0.1),
-                                      spreadRadius: 1,
-                                      blurRadius: 2,
-                                      offset: Offset(0, 1),
-                                    )
-                                  ],
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    "Join",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 20,
-                                    ),
-                                  ),
+                          giveaway['giveawayStatus'] == "CLOSED" ? Column(
+                            children: [
+                              Container(
+                                alignment: Alignment.bottomLeft,
+                                child: Text(
+                                  "Winner: ",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleSmall,
                                 ),
                               ),
-                            ),
-                          )
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: EdgeInsets.only(
+                                        left: AppLayout.getWidth(16),
+                                        top: AppLayout.getHeight(8)),
+                                    child: CircleAvatar(
+                                      backgroundColor: Colors.grey[500],
+                                      radius: 25,
+                                      child: CircleAvatar(
+                                        radius: 25,
+                                        backgroundImage: NetworkImage(winnerUser['avatar']??"https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png"),
+                                      ),
+                                    ),
+                                  ),
+                                  Gap(AppLayout.getHeight(20)),
+                                  Flexible(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          winnerUser.isNotEmpty
+                                              ? winnerUser['fullName'] :
+                                          'No Name', style: TextStyle(fontSize: 12),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        Gap(AppLayout.getHeight(5)),
+                                        Text(
+                                          winnerUser.isNotEmpty
+                                              ? winnerUser['email'] :
+                                          'No Name', style: TextStyle(fontSize: 12),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+
+                                      ],
+                                    ),
+                                  ),
+
+                                ],
+                              ),
+
+                            ],
+                          ) : Container(),
+
                         ],
                       ),
                     );

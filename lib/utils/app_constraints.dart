@@ -79,7 +79,10 @@ class AppConstrants{
   static const String POSTACCPECTCLAIMBYITEMIDANDUSERID_URL = "$BASE_URL/api/items/accept";
 
   //receipt
-  static const String POSTRECEIPT_URL = "$BASE_URL/api/receipts";
+  static const String POSTRECEIPT_URL = "$BASE_URL/api/items/accept-with-receipt";
+  static const String GETRECEIPTBYITEMID_URL = "$BASE_URL/api/receipts?ItemId=";
+  static const String GETRECEIPTBYRECEIVERID_URL = "$BASE_URL/api/receipts?ReceiverId=";
+  static const String GETRECEIPTBYSENDERID_URL = "$BASE_URL/api/receipts?SenderId=";
 
   //notification
   static const String GETALLNOTIBYUSERID_URL = "$BASE_URL/api/notifications/get-all-notification/";

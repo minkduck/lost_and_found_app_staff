@@ -38,6 +38,7 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
   final ImagePicker imagePicker = ImagePicker();
 
   List<XFile>? imageFileList = [];
+  bool isCreatingItem = false;
 
   Future<void> selectImagesFromGallery() async {
     final List<XFile> selectedImages = await imagePicker.pickMultiImage();
@@ -202,6 +203,13 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
                   boxColor: AppColors.primaryColor,
                   textButton: "Create",
                   onTap: () async {
+                    if (isCreatingItem) {
+                      // If creation is already in progress, do nothing or show a message.
+                      return;
+                    }
+
+                    isCreatingItem = true;
+
                     if (imageFileList!.isNotEmpty) {
                       await compressAndCreateItem();
                     } else {

@@ -203,25 +203,27 @@ class _PostDetailState extends State<PostDetail> {
                                     NetworkImage(postList['user']['avatar']!),
                               ),
                               Gap(AppLayout.getHeight(15)),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    postList['user']['fullName'] ?? 'No Name',
-                                    style: Theme.of(context).textTheme.titleSmall,
-                                  ),
-                                  Gap(AppLayout.getHeight(5)),
-                                  Text(
-                                    postList['createdDate'] != null
-                                        ? '${TimeAgoWidget.formatTimeAgo(DateTime.parse(postList['createdDate']))}  --  '
-                                        '${DateFormat('dd-MM-yyyy').format(DateTime.parse(postList['createdDate']))}'
-                                        : 'No Date',
-                                    style: TextStyle(
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      postList['user']['fullName'] ?? 'No Name',
+                                      style: Theme.of(context).textTheme.titleSmall,
+                                    ),
+                                    Gap(AppLayout.getHeight(5)),
+                                    Text(
+                                      postList['createdDate'] != null
+                                          ? '${TimeAgoWidget.formatTimeAgo(DateTime.parse(postList['createdDate']))}  --  ${DateFormat('dd-MM-yyyy').format(DateTime.parse(postList['createdDate']))}'
+                                          : 'No Date',
+                                      style: TextStyle(
                                         fontSize: 13,
-                                        color: Colors.grey),
-                                  )
-                                ],
-                              )
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ],
                           ),
                           Gap(AppLayout.getHeight(30)),

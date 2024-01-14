@@ -11,8 +11,10 @@ import 'package:get/get.dart';
 
 import '../../data/api/item/claim_controller.dart';
 import '../../data/api/item/item_controller.dart';
+import '../../data/api/item/receipt_controller.dart';
 import '../../data/api/message/Chat.dart';
 import '../../data/api/message/chat_controller.dart';
+import '../../data/api/user/user_controller.dart';
 import '../../routes/route_helper.dart';
 import '../../utils/app_constraints.dart';
 import '../../utils/app_layout.dart';
@@ -52,6 +54,10 @@ class _ItemsDetailsState extends State<ItemsDetails> {
   Map<String, dynamic> itemlist = {};
   final ItemController itemController = Get.put(ItemController());
   final ClaimController claimController = Get.put(ClaimController());
+  final ReceiptController receiptController = Get.put(ReceiptController());
+  final UserController userController = Get.put(UserController());
+  List<Map<String, dynamic>> userReceiptList = [];
+  List<dynamic> recepitList = [];
 
   Future<void> claimItem() async {
     try {
@@ -139,7 +145,24 @@ class _ItemsDetailsState extends State<ItemsDetails> {
         });
       }
     });
+    await receiptController.getReceiptByItemId(widget.pageId).then((result) async {
+      if (_isMounted) {
+        recepitList = result;
+        for (var receipt in recepitList) {
+          final userId = receipt['receiverId'];
+          final userMap = await userController.getUserByUserId(userId);
+          final Map<String, dynamic> claimInfo = {
+            'receipt': receipt,
+            'user': userMap != null ? userMap : null, // Check if user is null
+          };
+          print("claimInfo:" + claimInfo.toString());
+          setState(() {
+            userReceiptList.add(claimInfo);
+          });
+        }
+      }
 
+    });
   }
 
 
@@ -213,6 +236,24 @@ class _ItemsDetailsState extends State<ItemsDetails> {
             }
           });
         }
+      });
+      await receiptController.getReceiptByItemId(widget.pageId).then((result) async {
+        if (_isMounted) {
+          recepitList = result;
+          for (var receipt in recepitList) {
+            final userId = receipt['receiverId'];
+            final userMap = await userController.getUserByUserId(userId);
+            final Map<String, dynamic> claimInfo = {
+              'receipt': receipt,
+              'user': userMap != null ? userMap : null, // Check if user is null
+            };
+            print("claimInfo:" + claimInfo.toString());
+            setState(() {
+              userReceiptList.add(claimInfo);
+            });
+          }
+        }
+
       });
 
     });
@@ -473,7 +514,7 @@ class _ItemsDetailsState extends State<ItemsDetails> {
                       );*/
                     })),
                 Gap(AppLayout.getHeight(20)),
-                itemlist['user']['id'] == uid ? Center(
+                itemlist['itemStatus'] != 'RETURNED' ? itemlist['user']['id'] == uid ? Center(
                     child: AppButton(
                         boxColor: AppColors.secondPrimaryColor,
                         textButton: "List Claim",
@@ -481,7 +522,60 @@ class _ItemsDetailsState extends State<ItemsDetails> {
                           Navigator.push(
                               context, MaterialPageRoute(builder: (context) => ClaimItems(pageId: widget.pageId, page: "Claim user",itemUserId: itemlist['user']['id'],)));
                         }))
-                    : Container(),
+                    : Container() : Column(
+                  children: [
+                    Text('Receiver: ',
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ),
+                    Padding(
+                      padding:  EdgeInsets.only(left: 8.0),
+                      child: ListView.builder(
+                          physics: NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          itemCount: userReceiptList.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            final userReceiptInfo = userReceiptList[index];
+                            final claim = userReceiptInfo['claim'];
+                            final user = userReceiptInfo['user'];
+                            return Row(
+                              children: [
+                                Container(
+                                  child: CircleAvatar(
+                                    radius: 30,
+                                    backgroundImage: NetworkImage(user['avatar']),
+                                  ),
+                                ),
+                                Gap(AppLayout.getWidth(10)),
+                                Flexible(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        user['fullName'] ?? '-',
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: Theme.of(context).textTheme.titleMedium,
+                                      ),
+                                      Gap(AppLayout.getHeight(5)),
+                                      Text(
+                                        user['email'] ?? '-',
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: Theme.of(context).textTheme.titleSmall,
+                                      ),
+
+                                    ],
+                                  ),
+                                ),
+
+                              ],
+                            );
+                          }
+
+                      ),
+                    )
+                  ],
+                ),
               ],
             )
                 : SizedBox(

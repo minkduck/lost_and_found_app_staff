@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:intl/intl.dart';
 
 import '../../test/time/time_widget.dart';
 import '../../utils/app_layout.dart';
@@ -7,6 +8,7 @@ import '../../utils/colors.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/big_text.dart';
 import '../../widgets/icon_and_text_widget.dart';
+import '../../widgets/time_ago_found_widget.dart';
 import '../item/items_detail.dart';
 
 class ItemCabinerList extends StatefulWidget {
@@ -83,6 +85,33 @@ class _ItemCabinerListState extends State<ItemCabinerList> {
                     final item = widget.itemCabinetList[index];
                     final mediaUrl = getUrlFromItem(item) ??
                         "https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png";
+                    if (item['foundDate'] != null) {
+                      String foundDate = item['foundDate'];
+                      if (foundDate.contains('|')) {
+                        List<String> dateParts = foundDate.split('|');
+                        if (dateParts.length == 2) {
+                          String date = dateParts[0].trim();
+                          String slot = dateParts[1].trim();
+
+                          // Check if the date format needs to be modified
+                          if (date.contains(' ')) {
+                            // If it contains time, remove the time part
+                            date = date.split(' ')[0];
+                          }
+                          DateFormat originalDateFormat = DateFormat("yyyy-MM-dd");
+                          DateTime originalDate = originalDateFormat.parse(date);
+
+                          // Format the date in the desired format
+                          DateFormat desiredDateFormat = DateFormat("dd-MM-yyyy");
+                          String formattedDate = desiredDateFormat.format(originalDate);
+                          String timeAgo = TimeAgoFoundWidget.formatTimeAgo(originalDate);
+
+                          // Update the foundDate in the itemlist
+                          item['foundDate'] = '$timeAgo';
+                        }
+                      }
+                    }
+
                     return Container(
                       decoration: const BoxDecoration(
                         borderRadius: BorderRadius.all(Radius.circular(15)),
@@ -129,24 +158,38 @@ class _ItemCabinerListState extends State<ItemCabinerList> {
                                   ],
                                 ),
                                 Gap(AppLayout.getHeight(15)),
-                                IconAndTextWidget(
-                                  icon: Icons.location_on,
-                                  text: item['locationName'] ?? 'No Location',
-                                  size: 15,
-                                  iconColor: Colors.black,
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.location_on,
+                                      color: Theme.of(context).iconTheme.color,
+                                      size: AppLayout.getHeight(24),
+                                    ),
+                                    const Gap(5),
+                                    Expanded(
+                                      child: Text(
+                                        item['locationName'] ??
+                                            'No Location',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                                 Gap(AppLayout.getWidth(15)),
                                 Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 8.0),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 8.0),
                                   child: Align(
-                                    alignment: Alignment.centerLeft,
+                                    alignment:
+                                    Alignment.centerLeft,
                                     child: Text(
-                                      item['createdDate'] != null
-                                          ? '${TimeAgoWidget.formatTimeAgo(DateTime.parse(item['createdDate']))}'
-                                          : 'No Date',
+                                      item['foundDate'] ?? '',
                                       maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(fontSize: 15),
+                                      overflow:
+                                      TextOverflow.ellipsis,
+                                      style:
+                                      TextStyle(fontSize: 15),
                                     ),
                                   ),
                                 ),

@@ -15,6 +15,7 @@ import '../../utils/colors.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/custom_search_bar.dart';
 import '../../widgets/icon_and_text_widget.dart';
+import '../../widgets/time_ago_found_widget.dart';
 import '../../widgets/time_widget.dart';
 import '../item/create_item.dart';
 import '../item/items_detail.dart';
@@ -71,6 +72,8 @@ class _HomeScreenState extends State<HomeScreen> {
         return AppColors.secondPrimaryColor;
       case 'CLOSED':
         return Colors.red;
+      case 'REJECTED':
+        return Colors.pink;
       default:
         return Colors.grey; // Default color, you can change it to your preference
     }
@@ -256,15 +259,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Container(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'All',
-                        style: Theme.of(context).textTheme.displayMedium,
-                      ),
-                    ),
                     CustomSearchBar(
                       filterText: filterText,
                       // Pass the filter text
@@ -400,6 +396,32 @@ class _HomeScreenState extends State<HomeScreen> {
                         final item = filteredItems[index];
                         final mediaUrl = getUrlFromItem(item) ??
                             "https://www.freeiconspng.com/thumbs/no-image-icon/no-image-icon-6.png";
+                        if (item['foundDate'] != null) {
+                          String foundDate = item['foundDate'];
+                          if (foundDate.contains('|')) {
+                            List<String> dateParts = foundDate.split('|');
+                            if (dateParts.length == 2) {
+                              String date = dateParts[0].trim();
+                              String slot = dateParts[1].trim();
+
+                              // Check if the date format needs to be modified
+                              if (date.contains(' ')) {
+                                // If it contains time, remove the time part
+                                date = date.split(' ')[0];
+                              }
+                              DateFormat originalDateFormat = DateFormat("yyyy-MM-dd");
+                              DateTime originalDate = originalDateFormat.parse(date);
+
+                              // Format the date in the desired format
+                              DateFormat desiredDateFormat = DateFormat("dd-MM-yyyy");
+                              String formattedDate = desiredDateFormat.format(originalDate);
+                              String timeAgo = TimeAgoFoundWidget.formatTimeAgo(originalDate);
+
+                              // Update the foundDate in the itemlist
+                              item['foundDate'] = '$timeAgo';
+                            }
+                          }
+                        }
 
                         return Container(
                           decoration: const BoxDecoration(
@@ -443,12 +465,23 @@ class _HomeScreenState extends State<HomeScreen> {
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     Gap(AppLayout.getHeight(15)),
-                                    IconAndTextWidget(
-                                      icon: Icons.location_on,
-                                      text: item['locationName'] ??
-                                          'No Location',
-                                      size: 15,
-                                      iconColor: Colors.black,
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.location_on,
+                                          color: Theme.of(context).iconTheme.color,
+                                          size: AppLayout.getHeight(24),
+                                        ),
+                                        const Gap(5),
+                                        Expanded(
+                                          child: Text(
+                                            item['locationName'] ??
+                                                'No Location',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                     Gap(AppLayout.getWidth(15)),
                                     Container(
@@ -458,9 +491,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         alignment:
                                         Alignment.centerLeft,
                                         child: Text(
-                                          item['createdDate'] != null
-                                              ? '${TimeAgoWidget.formatTimeAgo(DateTime.parse(item['createdDate']))}'
-                                              : 'No Date',
+                                          item['foundDate'] ?? '',
                                           maxLines: 1,
                                           overflow:
                                           TextOverflow.ellipsis,
@@ -538,6 +569,32 @@ class _HomeScreenState extends State<HomeScreen> {
                         final item = filteredMyItems[index];
                         final mediaUrl = getUrlFromItem(item) ??
                             "https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png";
+                        if (item['foundDate'] != null) {
+                          String foundDate = item['foundDate'];
+                          if (foundDate.contains('|')) {
+                            List<String> dateParts = foundDate.split('|');
+                            if (dateParts.length == 2) {
+                              String date = dateParts[0].trim();
+                              String slot = dateParts[1].trim();
+
+                              // Check if the date format needs to be modified
+                              if (date.contains(' ')) {
+                                // If it contains time, remove the time part
+                                date = date.split(' ')[0];
+                              }
+                              DateFormat originalDateFormat = DateFormat("yyyy-MM-dd");
+                              DateTime originalDate = originalDateFormat.parse(date);
+
+                              // Format the date in the desired format
+                              DateFormat desiredDateFormat = DateFormat("dd-MM-yyyy");
+                              String formattedDate = desiredDateFormat.format(originalDate);
+                              String timeAgo = TimeAgoFoundWidget.formatTimeAgo(originalDate);
+
+                              // Update the foundDate in the itemlist
+                              item['foundDate'] = '$timeAgo';
+                            }
+                          }
+                        }
 
                         return Container(
                           decoration: const BoxDecoration(
@@ -581,13 +638,25 @@ class _HomeScreenState extends State<HomeScreen> {
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     Gap(AppLayout.getHeight(15)),
-                                    IconAndTextWidget(
-                                      icon: Icons.location_on,
-                                      text: item['locationName'] ??
-                                          'No Location',
-                                      size: 15,
-                                      iconColor: Colors.black,
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.location_on,
+                                          color: Theme.of(context).iconTheme.color,
+                                          size: AppLayout.getHeight(24),
+                                        ),
+                                        const Gap(5),
+                                        Expanded(
+                                          child: Text(
+                                            item['locationName'] ??
+                                                'No Location',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
                                     ),
+
                                     Gap(AppLayout.getWidth(15)),
                                     Container(
                                       padding: EdgeInsets.symmetric(
@@ -596,16 +665,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                         alignment:
                                         Alignment.centerLeft,
                                         child: Text(
-                                          item['createdDate'] != null
-                                              ? '${TimeAgoWidget.formatTimeAgo(DateTime.parse(item['createdDate']))}'
-                                              : 'No Date',
+                                          item['foundDate'] ?? '',
                                           maxLines: 1,
                                           overflow:
                                           TextOverflow.ellipsis,
                                           style:
                                           TextStyle(fontSize: 15),
                                         ),
-
                                       ),
                                     ),
                                     Gap(AppLayout.getHeight(15)),
@@ -668,6 +734,32 @@ class _HomeScreenState extends State<HomeScreen> {
                         final item = filteredItems[index];
                         final mediaUrl = getUrlFromItem(item) ??
                             "https://www.freeiconspng.com/thumbs/no-image-icon/no-image-icon-6.png";
+                        if (item['foundDate'] != null) {
+                          String foundDate = item['foundDate'];
+                          if (foundDate.contains('|')) {
+                            List<String> dateParts = foundDate.split('|');
+                            if (dateParts.length == 2) {
+                              String date = dateParts[0].trim();
+                              String slot = dateParts[1].trim();
+
+                              // Check if the date format needs to be modified
+                              if (date.contains(' ')) {
+                                // If it contains time, remove the time part
+                                date = date.split(' ')[0];
+                              }
+                              DateFormat originalDateFormat = DateFormat("yyyy-MM-dd");
+                              DateTime originalDate = originalDateFormat.parse(date);
+
+                              // Format the date in the desired format
+                              DateFormat desiredDateFormat = DateFormat("dd-MM-yyyy");
+                              String formattedDate = desiredDateFormat.format(originalDate);
+                              String timeAgo = TimeAgoFoundWidget.formatTimeAgo(originalDate);
+
+                              // Update the foundDate in the itemlist
+                              item['foundDate'] = '$timeAgo';
+                            }
+                          }
+                        }
 
                         return Container(
                           decoration: const BoxDecoration(
@@ -711,12 +803,23 @@ class _HomeScreenState extends State<HomeScreen> {
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     Gap(AppLayout.getHeight(15)),
-                                    IconAndTextWidget(
-                                      icon: Icons.location_on,
-                                      text: item['locationName'] ??
-                                          'No Location',
-                                      size: 15,
-                                      iconColor: Colors.black,
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.location_on,
+                                          color: Theme.of(context).iconTheme.color,
+                                          size: AppLayout.getHeight(24),
+                                        ),
+                                        const Gap(5),
+                                        Expanded(
+                                          child: Text(
+                                            item['locationName'] ??
+                                                'No Location',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                     Gap(AppLayout.getWidth(15)),
                                     Container(
@@ -726,9 +829,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         alignment:
                                         Alignment.centerLeft,
                                         child: Text(
-                                          item['createdDate'] != null
-                                              ? '${TimeAgoWidget.formatTimeAgo(DateTime.parse(item['createdDate']))}'
-                                              : 'No Date',
+                                          item['foundDate'] ?? '',
                                           maxLines: 1,
                                           overflow:
                                           TextOverflow.ellipsis,

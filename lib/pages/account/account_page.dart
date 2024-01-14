@@ -75,12 +75,6 @@ class _AccountPageState extends State<AccountPage> {
                     context, MaterialPageRoute(builder: (context) => ProfilePage()));
 
               }),
-              Gap(AppLayout.getHeight(50)),
-              AppButton(boxColor: AppColors.primaryColor, textButton: "My QR Code", onTap: () {
-                Navigator.push(
-                    context, MaterialPageRoute(builder: (context) => MyQrCode()));
-
-              }),
               Gap(AppLayout.getHeight(80)),
 
               InkWell(

@@ -76,6 +76,8 @@ class _PostScreenState extends State<PostScreen> {
         return AppColors.secondPrimaryColor;
       case 'CLOSED':
         return Colors.red;
+      case 'REJECTED':
+        return Colors.pink;
       default:
         return Colors.grey; // Default color, you can change it to your preference
     }
@@ -452,41 +454,40 @@ class _PostScreenState extends State<PostScreen> {
                                     child: Column(
                                       children: [
                                         Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [
-                                            Row(
-                                              children: [
-                                                CircleAvatar(
-                                                  radius: 25,
-                                                  backgroundImage: NetworkImage(
-                                                      post['user']
-                                                          ['avatar']!),
-                                                ),
-                                                Gap(AppLayout.getHeight(15)),
-                                                Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      post['user']
-                                                          ['fullName'],
-                                                      style: Theme.of(context)
-                                                          .textTheme
-                                                          .titleSmall,
-                                                    ),
-                                                    Gap(AppLayout.getHeight(5)),
-                                                    Text(
-                                                      post['createdDate'] != null
-                                                          ? '${TimeAgoWidget.formatTimeAgo(DateTime.parse(post['createdDate']))}'
-                                                          : 'No Date',
-                                                      style: TextStyle(
-                                                          fontSize: 13,
-                                                          color: Colors.grey),
-                                                    )
-                                                  ],
-                                                )
-                                              ],
+                                            CircleAvatar(
+                                              radius: 25,
+                                              backgroundImage: NetworkImage(
+                                                  post['user']
+                                                  ['avatar']!),
                                             ),
-                                  ],
+                                            Gap(AppLayout.getHeight(15)),
+                                            Flexible(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    post['user']
+                                                    ['fullName'],
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .titleSmall,
+                                                  ),
+                                                  Gap(AppLayout.getHeight(5)),
+                                                  Text(
+                                                    post['createdDate'] != null
+                                                        ? '${TimeAgoWidget.formatTimeAgo(DateTime.parse(post['createdDate']))}'
+                                                        : 'No Date',
+                                                    style: TextStyle(
+                                                        fontSize: 13,
+                                                        color: Colors.grey),
+                                                  )
+                                                ],
+                                              ),
+                                            )
+                                          ],
                                         ),
                                         Gap(AppLayout.getHeight(30)),
                                         Container(
