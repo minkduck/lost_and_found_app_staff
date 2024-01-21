@@ -19,6 +19,11 @@ class AppConstrants{
     return prefs.getString('role') ?? '';
   }
 
+  static Future<String> getCampusId() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('campusId') ?? '';
+  }
+
   static const String APP_NAME = "Lost&FoundStaff";
   static const int APP_VERSION = 1;
 
@@ -77,6 +82,7 @@ class AppConstrants{
   static const String GETLISTFOUNDERUSER_URL = "$BASE_URL/api/items/claims/founder/item/";
   static const String POSTDENYCLAIMBYITEMIDANDUSERID_URL = "$BASE_URL/api/items/deny";
   static const String POSTACCPECTCLAIMBYITEMIDANDUSERID_URL = "$BASE_URL/api/items/accept";
+  static const String POSTREVOKEDENYCLAIMBYITEMIDANDUSERID_URL = "$BASE_URL/api/items/revoke-deny";
 
   //receipt
   static const String POSTRECEIPT_URL = "$BASE_URL/api/items/accept-with-receipt";

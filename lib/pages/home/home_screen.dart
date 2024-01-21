@@ -887,15 +887,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
-      floatingActionButton: role == "Storage Manager" ? FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-              context, MaterialPageRoute(builder: (context) => CreateItem()));
-        },
-        tooltip: 'Create Items',
-        backgroundColor: AppColors.primaryColor,
-        child: const Icon(Icons.add),
-      ) : Container(),
 
     );
   }

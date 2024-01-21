@@ -25,12 +25,15 @@ class ReceiptController extends GetxController{
     var request = http.MultipartRequest('POST', Uri.parse(AppConstrants.POSTRECEIPT_URL));
     request.fields.addAll({
       "ReceiverId": receiverId,
-      "SenderId": senderId,
+      // "SenderId": senderId,
       "ItemId": itemId.toString(),
-      "ReceiptType": "RETURN_OUT_STORAGE",
     });
-    request.files.add(await http.MultipartFile.fromPath('image', media));
+    request.files.add(await http.MultipartFile.fromPath('ReceiptMedia', media));
     request.headers.addAll(headers);
+    print("request: " + request.toString());
+    print("request field: " + request.fields.toString());
+    print("request files: " + request.files.toString());
+
 
     http.StreamedResponse response = await request.send();
     if (response.statusCode == 200) {

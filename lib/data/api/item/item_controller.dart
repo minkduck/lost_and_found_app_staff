@@ -10,6 +10,7 @@ import '../../../utils/snackbar_utils.dart';
 class ItemController extends GetxController{
   late String accessToken = "";
   late String uid = "";
+  late String campusId = "";
 
   List<dynamic> _itemList = [];
   List<dynamic> get itemList => _itemList;
@@ -20,11 +21,12 @@ class ItemController extends GetxController{
 
   Future<List<dynamic>> getItemList() async {
     accessToken = await AppConstrants.getToken();
+    campusId = await AppConstrants.getCampusId();
     var headers = {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $accessToken'
     };
-    var request = http.Request('GET', Uri.parse('${AppConstrants.GETITEMWITHPAGINATION_URL}ALL'));
+    var request = http.Request('GET', Uri.parse('${AppConstrants.GETITEMWITHPAGINATION_URL}ALL&CampusId=$campusId&MaxPageSize=100'));
 
     request.headers.addAll(headers);
 

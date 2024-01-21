@@ -137,6 +137,10 @@ class _ItemsDetailsState extends State<ItemsDetails> {
 
                   // Update the foundDate in the itemlist
                   itemlist['foundDate'] = '$formattedDate $slot';
+                  itemlist['slot'] = slot;
+                  itemlist['date'] = originalDate;
+                  print(itemlist['slot']);
+                  print(itemlist['date']);
                 }
               }
             }
@@ -229,6 +233,10 @@ class _ItemsDetailsState extends State<ItemsDetails> {
 
                     // Update the foundDate in the itemlist
                     itemlist['foundDate'] = '$formattedDate $slot';
+                    itemlist['slot'] = slot;
+                    itemlist['date'] = originalDate;
+                    print(itemlist['slot']);
+                    print(itemlist['date']);
                   }
                 }
               }
@@ -295,37 +303,6 @@ class _ItemsDetailsState extends State<ItemsDetails> {
                         ),
                       ],
                     ),
-                    itemlist['user']['id'] == uid ? itemlist['itemStatus'] != 'RETURNED' ? Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => EditItem(
-                                  itemId: itemId,
-                                  initialCategory: itemlist['categoryName'], // Pass the initial data
-                                  initialTitle: itemlist['name'], // Pass the initial data
-                                  initialDescription: itemlist['description'], // Pass the initial data
-                                  initialLocation: itemlist['locationName'],
-                                  status: itemlist['itemStatus'],
-                                  foundDate: itemlist['foundDate'],
-                                ),
-                              ),
-                            );
-                          },
-                          child: Text("Edit", style: TextStyle(color: AppColors.primaryColor, fontSize: 20),),
-                        ),
-                        Gap(AppLayout.getWidth(15)),
-                        GestureDetector(
-                          onTap: () async {
-                            await itemController.deleteItemById(itemId);
-                          },
-                          child: Text("Delete", style: TextStyle(color: Colors.redAccent, fontSize: 20),),
-                        ),
-
-                      ],
-                    ) : Container() : Container()
                   ],
                 ),
                 Padding(

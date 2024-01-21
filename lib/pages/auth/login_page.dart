@@ -100,6 +100,7 @@ class _LoginPageState extends State<LoginPage> {
 
       if (userList['role'] == "Storage Manager") {
         SnackbarUtils().showSuccess(title: "Success", message: "Login successfully");
+        await prefs.setString('campusId', userList['campus']['id'].toString());
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => HomePageStorageManager(initialIndex: 0)),
@@ -111,7 +112,7 @@ class _LoginPageState extends State<LoginPage> {
           MaterialPageRoute(builder: (context) => HomePageManager(initialIndex: 0,)),
         );
       } else {
-        SnackbarUtils().showError(title: "Unsuccess", message: "You do not have to log in");
+        SnackbarUtils().showError(title: "Unsuccess", message: "You do not have permission to log into the system");
         // Handle other roles or logout here
         logout();
         Navigator.pushReplacement(

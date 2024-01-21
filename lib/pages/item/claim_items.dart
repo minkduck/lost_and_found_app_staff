@@ -5,13 +5,17 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 
 import '../../data/api/item/claim_controller.dart';
+import '../../data/api/message/Chat.dart';
+import '../../data/api/message/chat_controller.dart';
 import '../../data/api/user/user_controller.dart';
 import '../../utils/app_assets.dart';
+import '../../utils/app_constraints.dart';
 import '../../utils/app_layout.dart';
 import '../../utils/colors.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/big_text.dart';
 import '../claims/scan_qrcode.dart';
+import '../message/chat_page.dart';
 
 class ClaimItems extends StatefulWidget {
   final int pageId;
@@ -29,14 +33,15 @@ class _ClaimItemsState extends State<ClaimItems> {
   final ClaimController claimController = Get.put(ClaimController());
   final Map<String, dynamic> userMap = {};
   final UserController userController = Get.put(UserController());
-  bool itemClaimLoading = false;
+  late String uid = "";
+  bool isAcceptClaim = false;
 
   @override
   void initState() {
     super.initState();
     _isMounted = true;
-    itemClaimLoading = true;
     Future.delayed(Duration(seconds: 1), () async {
+      uid = await AppConstrants.getUid();
       await claimController.getListClaimByItemId(widget.pageId).then((result) async {
         if (_isMounted) {
           final userClaims = result as List<dynamic>;
@@ -45,7 +50,7 @@ class _ClaimItemsState extends State<ClaimItems> {
             final userMap = await userController.getUserByUserId(userId);
             final Map<String, dynamic> claimInfo = {
               'claim': claim,
-              'user': userMap != null ? userMap : null, // Check if user is null
+              'user': userMap != null ? userMap : null,
             };
             print("claimInfo:" + claimInfo.toString());
             setState(() {
@@ -53,13 +58,23 @@ class _ClaimItemsState extends State<ClaimItems> {
             });
           }
         }
+      }).whenComplete(() {
+        if (_isMounted) {
+          setState(() {
+            if (userClaimList.isEmpty) {
+              _isMounted = false;
+            }
+          });
+        }
       });
-      setState(() {
-        itemClaimLoading = false;
-
-      });
-
     });
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    isAcceptClaim = false;
   }
 
   @override
@@ -88,163 +103,207 @@ class _ClaimItemsState extends State<ClaimItems> {
               ),
             ],
           ),
-          itemClaimLoading ? SizedBox(
-            width: AppLayout.getWidth(100),
-            height: AppLayout.getHeight(300),
-            child: const Center(
-              child: CircularProgressIndicator(),
-            ),
-          ) :
-          userClaimList.isNotEmpty ? ListView.builder(
-            physics: NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            itemCount: userClaimList.length,
-            itemBuilder: (BuildContext context, int index) {
-              final userClaimInfo = userClaimList[index];
-              final claim = userClaimInfo['claim'];
-              final user = userClaimInfo['user'];
-              // print("user:" + user);
-              return claim['claimStatus'] ? Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  color: Theme.of(context).cardColor,
-                ),
-                margin: EdgeInsets.only(
-                    bottom: AppLayout.getHeight(20)),
-                padding: const EdgeInsets.all(11.0),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          child: CircleAvatar(
-                            radius: 30,
-                            backgroundImage: NetworkImage(user['avatar']),
-                            // backgroundImage: AssetImage(AppAssets.avatarDefault!),
-                          ),
-                        ),
-                        Gap(AppLayout.getWidth(15)),
-                        Column(
-                          children: [
-                            Text(user['fullName'] ?? "No Name"),
-                            // const Text("Name"),
-                            Gap(AppLayout.getHeight(10)),
-                            Text(user['email'] ?? "No Email"),
-                            // const Text("Email"),
-
-                          ],
-                        ),
-                        Spacer(),
-                      ],
-                    ),
-                    Gap(AppLayout.getHeight(10)),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            // Handle the tap event
-                          },
-                          child: Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppColors.secondPrimaryColor,
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Icon(FontAwesomeIcons.comment, color: Colors.white),
+          if (userClaimList.isNotEmpty)
+            ListView.builder(
+              physics: NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: userClaimList.length,
+              itemBuilder: (BuildContext context, int index) {
+                final userClaimInfo = userClaimList[index];
+                final claim = userClaimInfo['claim'];
+                final user = userClaimInfo['user'];
+                // print("user:" + user);
+                return  Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: Theme.of(context).cardColor,
+                  ),
+                  margin: EdgeInsets.only(
+                      bottom: AppLayout.getHeight(20)),
+                  padding: const EdgeInsets.all(11.0),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            child: CircleAvatar(
+                              radius: 30,
+                              backgroundImage: NetworkImage(user['avatar']),
+                              // backgroundImage: AssetImage(AppAssets.avatarDefault!),
                             ),
                           ),
-                        ),
-                        Gap(AppLayout.getWidth(5)),
-                        GestureDetector(
-                          onTap: () async {
-                            await claimController.accpectClaimByItemIdAndUserId(widget.pageId, claim['userId']);
-                            final updatedClaims = await claimController.getListClaimByItemId(widget.pageId);
-                            final updatedUserClaimList = <Map<String, dynamic>>[];
-                            for (var claim in updatedClaims) {
-                              final userId = claim['userId'];
-                              final userMap = await userController.getUserByUserId(userId);
-                              updatedUserClaimList.add({
-                                'claim': claim,
-                                'user': userMap != null ? userMap : null,
-                              });
-                            }
+                          Gap(AppLayout.getWidth(15)),
+                          Flexible(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(user['fullName'] ?? "No Name", maxLines: 2, overflow: TextOverflow.ellipsis,),
+                                // const Text("Name"),
+                                Gap(AppLayout.getHeight(10)),
+                                Text(user['email'] ?? "No Email", maxLines: 2, overflow: TextOverflow.ellipsis,),
+                                // const Text("Email"),
 
-                            setState(() {
-                              userClaimList = updatedUserClaimList;
-                            });
-                            Future.delayed(Duration(seconds: 2), () {
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      Gap(AppLayout.getHeight(10)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          GestureDetector(
+                            onTap: () async {
+                              String otherUserId = user['id'];
+
+                              await ChatController().createUserChats(uid, otherUserId);
+                              String chatId = uid.compareTo(otherUserId) > 0 ? uid + otherUserId : otherUserId + uid;
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => ScanQrCode(
-                                    userClaimId: claim['userId'],
-                                    itemUserId: widget.itemUserId,
-                                    itemId: widget.pageId,),
+                                  builder: (context) => ChatPage(
+                                    chat: Chat(
+                                      uid: otherUserId,
+                                      name: user['fullName'] ?? 'No Name',
+                                      image: user['avatar'] ?? '',
+                                      lastMessage: '', // You may want to pass initial message if needed
+                                      time: '',
+                                      chatId:chatId, // You may want to pass the chatId if needed
+                                      formattedDate: '',
+                                      otherId: otherUserId,
+                                      date: DateTime.now(),
+                                    ),
+                                  ),
                                 ),
                               );
-                            });
-                          },
-                          child: Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppColors.primaryColor, // Set the desired color for the circular border
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0), // Adjust the padding as needed
-                              child: Icon(FontAwesomeIcons.check, color: Colors.white), // You can set the color of the main icon
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: AppColors.secondPrimaryColor,
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Icon(FontAwesomeIcons.comment, color: Colors.white),
+                              ),
                             ),
                           ),
-
-                        ),
-
-                        Gap(AppLayout.getWidth(5)),
-                        GestureDetector(
-                          onTap: () async {
-                            await claimController.denyClaimByItemIdAndUserId(widget.pageId, claim['userId']);
-                            final updatedClaims = await claimController.getListClaimByItemId(widget.pageId);
-                            final updatedUserClaimList = <Map<String, dynamic>>[];
-                            for (var claim in updatedClaims) {
-                              final userId = claim['userId'];
-                              final userMap = await userController.getUserByUserId(userId);
-                              updatedUserClaimList.add({
-                                'claim': claim,
-                                'user': userMap != null ? userMap : null,
+                          Gap(AppLayout.getWidth(5)),
+                          claim['claimStatus'] != "DENIED" ? GestureDetector(
+                            onTap: () async {
+                              Future.delayed(Duration(seconds: 2), () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ScanQrCode(
+                                      userClaimId: claim['userId'],
+                                      itemUserId: widget.itemUserId,
+                                      itemId: widget.pageId,),
+                                  ),
+                                );
                               });
-                            }
-
-                            setState(() {
-                              userClaimList = updatedUserClaimList;
-                            });
-
-
-                          },
-                          child: Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.redAccent,
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: AppColors.primaryColor,
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Icon(FontAwesomeIcons.check, color: Colors.white),
+                              ),
                             ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Icon(FontAwesomeIcons.xmark, color: Colors.white),
+
+                          ) : Container(),
+
+                          Gap(AppLayout.getWidth(5)),
+                          claim['claimStatus'] != "DENIED" ? GestureDetector(
+                            onTap: () async {
+                              await claimController.denyClaimByItemIdAndUserId(widget.pageId, claim['userId']);
+                              final updatedClaims = await claimController.getListClaimByItemId(widget.pageId);
+                              final updatedUserClaimList = <Map<String, dynamic>>[];
+                              for (var claim in updatedClaims) {
+                                final userId = claim['userId'];
+                                final userMap = await userController.getUserByUserId(userId);
+                                updatedUserClaimList.add({
+                                  'claim': claim,
+                                  'user': userMap != null ? userMap : null,
+                                });
+                              }
+
+                              setState(() {
+                                userClaimList = updatedUserClaimList;
+                                claim['claimStatus'];
+                              });
+
+
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.redAccent,
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Icon(FontAwesomeIcons.xmark, color: Colors.white),
+                              ),
+                            ),
+                          ) : GestureDetector(
+                            onTap: () async {
+                              await claimController.revokeClaimByItemIdAndUserId(widget.pageId, claim['userId']);
+                              final updatedClaims = await claimController.getListClaimByItemId(widget.pageId);
+                              final updatedUserClaimList = <Map<String, dynamic>>[];
+                              for (var claim in updatedClaims) {
+                                final userId = claim['userId'];
+                                final userMap = await userController.getUserByUserId(userId);
+                                updatedUserClaimList.add({
+                                  'claim': claim,
+                                  'user': userMap != null ? userMap : null,
+                                });
+                              }
+
+                              setState(() {
+                                userClaimList = updatedUserClaimList;
+                                claim['claimStatus'];
+                              });
+
+
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.redAccent,
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Icon(Icons.change_circle_outlined, color: Colors.white),
+                              ),
                             ),
                           ),
-                        )
-                      ],
-                    )
+                        ],
+                      )
 
-                  ],
-                ),
-              ) : Container();
-            },
-          ) : SizedBox(
-            width: AppLayout.getScreenWidth(),
-            height: AppLayout.getScreenHeight()-400,
-            child: Center(
-              child: Text("Don't have any claims"),
-            ),
-          ),
+                    ],
+                  ),
+                );
+              },
+            )
+          else if (userClaimList.isEmpty && !_isMounted)
+            SizedBox(
+              width: AppLayout.getScreenWidth(),
+              height: AppLayout.getScreenHeight()-200,
+              child: Center(
+                child: Text("This item don't have any claims"),
+              ),
+            )
+          else
+            SizedBox(
+              width: AppLayout.getWidth(100),
+              height: AppLayout.getHeight(300),
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            )
         ],
       ),
     );
